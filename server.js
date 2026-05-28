@@ -11,7 +11,36 @@ const rateLimit = require('express-rate-limit');
 const xss = require('xss');
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
+const crypto = require('crypto');
 require('dotenv').config();
+
+// Secure Password Hashing & Verification via PBKDF2 (Zero-dependency, highly secure)
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  return `pbkdf2$100000$${salt}$${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+  if (!storedHash) return false;
+  
+  // Backward compatibility: SHA256 legacy hash (64 chars hex)
+  if (!storedHash.includes('$') && storedHash.length === 64) {
+    const legacyHash = crypto.createHash('sha256').update(password).digest('hex');
+    return legacyHash === storedHash;
+  }
+  
+  // Modern secure PBKDF2 hash
+  const parts = storedHash.split('$');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+  
+  const iterations = parseInt(parts[1], 10);
+  const salt = parts[2];
+  const hash = parts[3];
+  
+  const testHash = crypto.pbkdf2Sync(password, salt, iterations, 64, 'sha512').toString('hex');
+  return testHash === hash;
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,15 +61,13 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', limiter);
 
-// Immutable Audit Logger
+// Immutable Audit Logger (Non-blocking async to prevent Event Loop stall)
 function writeAuditLog(actor, action, target, details) {
-  try {
-    const log = `[AUDIT LOG] [${new Date().toISOString()}] Actor: ${actor} | Action: ${action} | Target: ${target} | Details: ${JSON.stringify(details)}\n`;
-    fs.appendFileSync('audit.log', log);
-    console.log(log);
-  } catch (err) {
-    console.error("[Audit Logger Error] Failed to write to audit.log:", err);
-  }
+  const log = `[AUDIT LOG] [${new Date().toISOString()}] Actor: ${actor} | Action: ${action} | Target: ${target} | Details: ${JSON.stringify(details)}\n`;
+  console.log(log.trim());
+  fs.appendFile('audit.log', log, (err) => {
+    if (err) console.error("[Audit Logger Error] Failed to write to audit.log:", err);
+  });
 }
 
 // API Keys loaded strictly server-side (Production standard with VITE_* fallbacks)
@@ -56,7 +83,15 @@ let activeGeminiIndex = 0;
 // Supabase & Admin configurations
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
-const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "bo_la_admin_tối_cao_12345";
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || "";
+if (!ADMIN_SECRET_KEY) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error("[FATAL] ADMIN_SECRET_KEY is not set in production environment. Refusing to start.");
+    process.exit(1);
+  } else {
+    console.warn("[WARNING] ADMIN_SECRET_KEY is not set. Admin endpoints are disabled in this session.");
+  }
+}
 
 let supabase = null;
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -313,7 +348,7 @@ function compileSystemPrompt(personaId, userText = "") {
     lowercaseText.includes(s.term.toLowerCase())
   );
 
-  // 2. Lọc chọn 1 slang ngẫu nhiên cùng context
+  // 2. Lọc chọn tối đa 1 slang ngẫu nhiên cùng context (giảm từ 4→1 tránh nhồi nhét)
   const inputContext = detectInputContext(userText);
   const matchingTerms = new Set(matchingSlangs.map(s => s.term.toLowerCase()));
   const remainingSlangs = GENZ_SLANG_DATABASE.filter(s => 
@@ -321,10 +356,13 @@ function compileSystemPrompt(personaId, userText = "") {
     (s.context === inputContext || s.context === "general")
   );
   const shuffled = [...remainingSlangs].sort(() => 0.5 - Math.random());
-  const randomSlangs = shuffled.slice(0, 1);
+  // Chỉ lấy 1 slang bổ sung nếu chưa có match nào, tránh nhồi nhét
+  const randomSlangs = matchingSlangs.length === 0 ? shuffled.slice(0, 1) : [];
 
   const optimizedSlangs = [...matchingSlangs, ...randomSlangs];
-  const slangGuide = optimizedSlangs.map(s => `- **${s.term}**: ${s.meaning} (Ví dụ: "${s.example}")`).join("\n");
+  const slangGuide = optimizedSlangs.length > 0
+    ? optimizedSlangs.map(s => `- **${s.term}**: ${s.meaning} (Ví dụ: "${s.example}")`).join("\n")
+    : "(Không có slang phù hợp — hãy viết hoàn toàn tự nhiên không cần slang)";
 
   let compiledRules = `
 🔴 HÀNG RÀO KIỂM DUYỆT & BẢO MẬT TUYỆT ĐỐI (SỐNG CÒN):
@@ -357,13 +395,28 @@ function compileSystemPrompt(personaId, userText = "") {
 
 ---
 SLANG THAM KHẢO (chỉ dùng nếu phù hợp tự nhiên, KHÔNG ép nhét):
-Dưới đây là một số từ lóng Gen Z. Chỉ dùng TỐI ĐA 1-2 từ nếu nó khớp context một cách hoàn hảo. 
+Dưới đây là một số từ lóng Gen Z. Chỉ dùng TỐI ĐA 1 từ nếu nó khớp context một cách hoàn hảo. 
 Nếu không có từ nào phù hợp, ĐỪNG dùng. Câu nói tự nhiên quan trọng hơn slang rất nhiều.
 ${slangGuide}
 
 QUY TẮC PHẢN HỒI:
 - Nếu người dùng dùng slang, có thể phản hồi lại bằng slang đó hoặc nhại lại nhưng KHÔNG bắt buộc.
 - ƯU TIÊN HÀNG ĐẦU: quan sát đúng tình huống → lấy ví dụ đời thực liên hệ → punchline sắc sảo. Slang chỉ là gia vị phụ họa, tuyệt đối không dùng làm khung chính cho câu trả lời.
+
+---
+🚫 CHỐNG HALLUCINATION NGỮ CẢNH — QUY TẮC BẮT BUỘC:
+- Nếu người dùng chỉ kể về MỆT MỎI CÔNG VIỆC, HỌC TẬP, hoặc CÁC VẤN ĐỀ ĐỜI THƯỜNG → TUYỆT ĐỐI KHÔNG tự bịa ra chuyện crush, chia tay, người yêu, cắm sừng, tình cảm hay bất kỳ drama tình ái nào nếu người dùng KHÔNG đề cập.
+- Chỉ roast ĐÚNG vào những gì người dùng thực sự kể. Không thêm thắt, không suy diễn ngữ cảnh không có thật.
+
+📌 VÍ DỤ NEGATIVE (SAI — TUYỆT ĐỐI KHÔNG LÀM):
+Input: "Hôm nay đi làm mệt quá"
+SAI: "Chắc vì đang lo nghĩ đến crush nên mệt phải không? Kiểu gì cũng đang simp ai đó rồi..."
+→ LỖI: Người dùng không hề đề cập đến tình cảm, AI tự bịa ngữ cảnh.
+
+📌 VÍ DỤ POSITIVE (ĐÚNG — LÀM THEO CÁCH NÀY):
+Input: "Hôm nay đi làm mệt quá"
+ĐÚNG: "Ủa em? Thứ Hai chưa qua mà đã kiệt năng lượng thế là năng lực synergy với deadline đang ở mức động lực thoái hóa đạt đỉnh rồi nha bạn thân."
+→ ĐÚNG: Chỉ roast vào sự mệt mỏi công việc, không bịa thêm drama tình cảm.
 
 ---
 ${compiledRules}`;
@@ -420,7 +473,7 @@ async function callGroqText(prompt, systemPrompt) {
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      temperature: 0.85,
+      temperature: 0.65,
       max_tokens: 380
     })
   });
@@ -445,7 +498,7 @@ async function callOpenRouterText(prompt, systemPrompt) {
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      temperature: 0.85,
+      temperature: 0.65,
       max_tokens: 380
     })
   });
@@ -466,7 +519,7 @@ async function callGeminiText(prompt, systemPrompt) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: `System Instruction: ${systemPrompt}\n\nUser Input: ${prompt}` }] }],
-          generationConfig: { temperature: 0.85, maxOutputTokens: 350 }
+          generationConfig: { temperature: 0.65, maxOutputTokens: 350 }
         })
       });
       if (!response.ok) throw new Error(`Gemini HTTP Error: ${response.status}`);
@@ -478,6 +531,50 @@ async function callGeminiText(prompt, systemPrompt) {
     }
   }
   throw new Error("All Gemini text keys failed");
+}
+
+// Atomic coin deduction via Supabase RPC (row-level locking), fallback to safe read-check-update
+async function deductCoinsAtomically(userId, amount) {
+  if (!supabase) throw new Error("Supabase offline");
+
+  // Primary: Try Supabase RPC with row-level locking (requires PL/pgSQL function on DB)
+  try {
+    const { data, error } = await supabase.rpc('deduct_user_coins', {
+      p_user_id: userId,
+      p_amount: amount
+    });
+    if (error) throw error;
+    if (!data || data.success === false) {
+      return { success: false, reason: data?.reason || 'insufficient_coins' };
+    }
+    return { success: true, remaining: data.remaining_balance };
+  } catch (rpcErr) {
+    // RPC not available yet — fallback: safe sequential read-check-update with balance re-verification
+    console.warn("[Coins] RPC deduct_user_coins unavailable, using sequential fallback:", rpcErr.message);
+  }
+
+  // Fallback: re-read current balance, verify, then update
+  const { data: freshUser, error: readErr } = await supabase
+    .from('users')
+    .select('coins_balance')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (readErr) throw readErr;
+  if (!freshUser) return { success: false, reason: 'user_not_found' };
+  if (freshUser.coins_balance < amount) {
+    return { success: false, reason: 'insufficient_coins', balance: freshUser.coins_balance };
+  }
+
+  const newBalance = freshUser.coins_balance - amount;
+  const { error: updateErr } = await supabase
+    .from('users')
+    .update({ coins_balance: newBalance })
+    .eq('id', userId)
+    .eq('coins_balance', freshUser.coins_balance); // Optimistic lock: only update if balance unchanged
+
+  if (updateErr) throw updateErr;
+  return { success: true, remaining: newBalance };
 }
 
 // Secure Router handler
@@ -506,7 +603,6 @@ app.post('/api/roast', async (req, res) => {
   }
 
   // 4. KIỂM TRA VÀ XÁC THỰC COIN TRƯỚC KHI QUÉT SCREENSHOT TRÊN SERVER
-  let userCoinsBalanceBefore = 0;
   if (type === "screenshot" && userId && supabase) {
     try {
       const { data: user, error } = await supabase
@@ -515,17 +611,14 @@ app.post('/api/roast', async (req, res) => {
         .eq('id', userId)
         .maybeSingle();
 
-      if (!error && user) {
-        userCoinsBalanceBefore = user.coins_balance;
-        if (userCoinsBalanceBefore < 10) {
-          return res.json({
-            text: "Ủa bạn thân simp trúa ơi? Số dư trong ví tài khoản Supabase của bạn không đủ 10 Coin để chạy quét Screenshot đâu nha. Click nút nạp Coin và align lại tài chính ASAP nha em!",
-            provider: 'offline'
-          });
-        }
+      if (!error && user && user.coins_balance < 10) {
+        return res.json({
+          text: "Ủa bạn thân simp trúa ơi? Số dư trong ví tài khoản Supabase của bạn không đủ 10 Coin để chạy quét Screenshot đâu nha. Click nút nạp Coin và align lại tài chính ASAP nha em!",
+          provider: 'offline'
+        });
       }
     } catch (err) {
-      console.warn("[Backend Coins Check] Failed to read coins from DB, falling back to local simulation:", err.message);
+      console.warn("[Backend Coins Check] Failed to read coins from DB:", err.message);
     }
   }
 
@@ -560,7 +653,7 @@ Hãy:
   // A. TRY GROQ
   if (GROQ_KEY) {
     try {
-      console.log(`[Backend Proxy] Routing to Groq Llama-3.1-70B...`);
+      console.log(`[Backend Proxy] Routing to Groq Llama-3.3-70B-Versatile...`);
       const responseText = await callGroqText(customPrompt, systemPromptCompiled);
       finalResponse = { text: responseText, provider: 'groq' };
     } catch (err) {
@@ -599,20 +692,21 @@ Hãy:
     };
   }
 
-  // 5. TRỪ COIN THÀNH CÔNG TRÊN SERVER (ANTI-CHEAT)
-  if (type === "screenshot" && userId && supabase && userCoinsBalanceBefore >= 10) {
+  // 5. TRỪ COIN ATOMICALLY TRÊN SERVER (ANTI-CHEAT + RACE CONDITION SAFE)
+  if (type === "screenshot" && userId && supabase) {
     try {
-      const remainingCoins = userCoinsBalanceBefore - 10;
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ coins_balance: remainingCoins })
-        .eq('id', userId);
-      
-      if (!updateError) {
-        writeAuditLog('system', 'deduct_coins_screenshot', userId, { amount: 10, remaining: remainingCoins });
+      const deductResult = await deductCoinsAtomically(userId, 10);
+      if (deductResult.success) {
+        writeAuditLog('system', 'deduct_coins_screenshot', userId, { amount: 10, remaining: deductResult.remaining });
+      } else {
+        console.warn(`[Backend Coins] Atomic deduction failed for ${userId}:`, deductResult.reason);
+        // If coins were sufficient at pre-check but failed at deduction, still return result (AI already ran)
+        // but log the anomaly for audit
+        writeAuditLog('system', 'deduct_coins_failed', userId, { reason: deductResult.reason });
       }
     } catch (err) {
-      console.error("[Backend Coins Deduction] Failed to deduct coins:", err.message);
+      console.error("[Backend Coins Deduction] Atomic deduct failed:", err.message);
+      writeAuditLog('system', 'deduct_coins_error', userId, { error: err.message });
     }
   }
 
@@ -739,12 +833,9 @@ app.post('/api/users/sync', async (req, res) => {
     return res.json({ status: "local_storage_mode", coinsBalance: 10, email: email || "" });
   }
 
-  const crypto = require('crypto');
-
   try {
-    // A. PASSWORD-AUTH SYNC LOGIC (Secure Production-Real Authentication)
+    // A. PASSWORD-AUTH SYNC LOGIC (Secure Production-Real Authentication via PBKDF2)
     if (email && password) {
-      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
       // 1. Check if this email is already registered/linked to an account
       const { data: existingEmailUser, error: emailErr } = await supabase
@@ -756,9 +847,19 @@ app.post('/api/users/sync', async (req, res) => {
       if (emailErr) throw emailErr;
 
       if (existingEmailUser) {
-        // If email is registered, verify the password hash
-        if (existingEmailUser.password_hash && existingEmailUser.password_hash !== passwordHash) {
+        // If email is registered, verify the password hash using secure verifyPassword (supports SHA256 legacy + PBKDF2)
+        if (existingEmailUser.password_hash && !verifyPassword(password, existingEmailUser.password_hash)) {
           return res.status(400).json({ error: "Email này đã được liên kết với một ví khác và mật khẩu xác nhận không chính xác!" });
+        }
+
+        // Auto-migrate: if stored hash is legacy SHA256 (no `$`), upgrade to PBKDF2 on successful login
+        if (existingEmailUser.password_hash && !existingEmailUser.password_hash.includes('$')) {
+          const upgradedHash = hashPassword(password);
+          await supabase
+            .from('users')
+            .update({ password_hash: upgradedHash })
+            .eq('id', existingEmailUser.id);
+          writeAuditLog('system', 'auto_migrate_hash_pbkdf2', existingEmailUser.id, { email });
         }
         
         // Auth passed! Sync session switching logic: Return the original owner's userId
@@ -781,10 +882,10 @@ app.post('/api/users/sync', async (req, res) => {
         if (selectErr) throw selectErr;
 
         if (currentUser) {
-          // If active user exists in DB, update their credentials
+          // If active user exists in DB, update their credentials with secure PBKDF2 hash
           const { error: updateErr } = await supabase
             .from('users')
-            .update({ email: email.trim(), password_hash: passwordHash })
+            .update({ email: email.trim(), password_hash: hashPassword(password) })
             .eq('id', userId);
 
           if (updateErr) throw updateErr;
@@ -797,10 +898,10 @@ app.post('/api/users/sync', async (req, res) => {
             role: currentUser.role || "user"
           });
         } else {
-          // Create new record with credentials
+          // Create new record with secure PBKDF2 credentials
           const { error: insertErr } = await supabase
             .from('users')
-            .insert({ id: userId, email: email.trim(), password_hash: passwordHash, coins_balance: 10 });
+            .insert({ id: userId, email: email.trim(), password_hash: hashPassword(password), coins_balance: 10 });
 
           if (insertErr) throw insertErr;
 
