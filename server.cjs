@@ -535,6 +535,117 @@ app.post('/api/roast', async (req, res) => {
   return res.json(finalResponse);
 });
 
+// Automated Payment Gateway: SePay Webhook Integration
+app.post('/api/sepay/webhook', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const SEPAY_WEBHOOK_KEY = process.env.SEPAY_WEBHOOK_KEY || "";
+  
+  // 1. Webhook Key Security Check
+  if (SEPAY_WEBHOOK_KEY && authHeader) {
+    const expectedAuth = `Apikey ${SEPAY_WEBHOOK_KEY}`;
+    if (authHeader !== expectedAuth && authHeader !== SEPAY_WEBHOOK_KEY) {
+      writeAuditLog('system', 'sepay_webhook_unauthorized', 'webhook', { ip: req.ip });
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+  }
+
+  const { transactionContent, amountIn, accountNumber } = req.body;
+  
+  if (!transactionContent) {
+    return res.status(400).json({ error: "Missing transactionContent" });
+  }
+
+  console.log(`[SePay Webhook] Processing payment: Account: ${accountNumber} | Content: "${transactionContent}" | Amount: ${amountIn}đ`);
+
+  // 2. Extract transaction ID matching pattern MOHON[Coins]T[Code]
+  const contentUpper = transactionContent.toUpperCase().trim();
+  const match = contentUpper.match(/MOHON\d+T[A-Z0-9]+/);
+  
+  if (!match) {
+    console.log(`[SePay Webhook] No matching transaction pattern found in: "${transactionContent}"`);
+    return res.json({ status: "ignored", reason: "No transaction pattern match" });
+  }
+
+  const transactionId = match[0];
+  console.log(`[SePay Webhook] Found transaction ID in transfer content: ${transactionId}`);
+
+  if (!supabase) {
+    console.warn("[SePay Webhook] Supabase offline, cannot approve transaction");
+    return res.status(503).json({ error: "Database offline" });
+  }
+
+  try {
+    // 3. Query transaction from Supabase
+    const { data: tx, error: txError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', transactionId)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (txError) throw txError;
+
+    if (!tx) {
+      console.log(`[SePay Webhook] Transaction ${transactionId} not found or already processed`);
+      return res.json({ status: "ignored", reason: "Transaction not found or not pending" });
+    }
+
+    // 4. Double check transfer amount to prevent cheat attempts
+    const expectedAmount = Number(tx.amount);
+    const actualAmount = Number(amountIn);
+
+    if (actualAmount < expectedAmount) {
+      console.warn(`[SePay Webhook] Amount mismatch! Expected: ${expectedAmount}đ, Received: ${actualAmount}đ`);
+      writeAuditLog('system', 'sepay_amount_mismatch', tx.user_id, { transactionId, expectedAmount, actualAmount });
+      return res.json({ status: "failed", reason: "Amount mismatch" });
+    }
+
+    // 5. Get current user profile
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('coins_balance')
+      .eq('id', tx.user_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!user) {
+      console.error(`[SePay Webhook] User ${tx.user_id} not found for transaction ${transactionId}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 6. Update transaction status and add coins atomically
+    const newBalance = user.coins_balance + tx.coins_added;
+    
+    const { error: updateTxError } = await supabase
+      .from('transactions')
+      .update({ status: 'success' })
+      .eq('id', transactionId);
+
+    if (updateTxError) throw updateTxError;
+
+    const { error: updateUserError } = await supabase
+      .from('users')
+      .update({ coins_balance: newBalance })
+      .eq('id', tx.user_id);
+
+    if (updateUserError) throw updateUserError;
+
+    writeAuditLog('system', 'sepay_approve_success', tx.user_id, {
+      transactionId,
+      amount: actualAmount,
+      coinsAdded: tx.coins_added,
+      newBalance
+    });
+
+    console.log(`[SePay Webhook] Successfully credited +${tx.coins_added} coins to user ${tx.user_id}`);
+    return res.json({ success: true, status: "approved", transactionId });
+
+  } catch (err) {
+    console.error("[SePay Webhook Error] Webhook processing failed:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Sync User Profile (Supabase DB ➔ LocalStorage)
 app.post('/api/users/sync', async (req, res) => {
   const { userId, email, password } = req.body;
