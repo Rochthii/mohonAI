@@ -513,7 +513,7 @@ function App() {
 
       {/* CHAT PANEL */}
       <main className="glass-panel" style={chatPanelStyle}>
-        <div style={chatMessagesContainerStyle}>
+        <div className="chat-bubble-container" style={chatMessagesContainerStyle}>
           {chatHistory.map((msg, index) => {
             const isUser = msg.sender === 'user';
             
@@ -541,7 +541,7 @@ function App() {
                     </div>
                   )}
 
-                  <div style={{
+                  <div className="message-bubble" style={{
                     ...messageBubbleStyle,
                     background: isUser ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
                     border: isUser ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid var(--border-neon)',
