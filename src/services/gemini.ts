@@ -157,6 +157,23 @@ export async function fetchChatHistoryDB(
   }
 }
 
+export async function deleteChatHistoryDB(
+  userId: string,
+  personaId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${BACKEND_BASE}/api/chats/${userId}/${personaId}`, {
+      method: "DELETE"
+    });
+    if (!response.ok) throw new Error("Delete failed");
+    const data = await response.json();
+    return data.status === "deleted" || data.status === "local_storage_mode";
+  } catch (e) {
+    console.warn("[Client DB Service] Delete chats fallback:", e);
+    return false;
+  }
+}
+
 export async function saveChatMessageDB(params: {
   userId: string;
   personaId: string;

@@ -150,75 +150,115 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/
 
 // Slang Dictionary kept strictly on the server-side to protect Intellectual Property
 const GENZ_SLANG_DATABASE = [
-  { term: "Dân Zalo", meaning: "Người lạc hậu, không cập nhật kịp xu hướng", example: "Ủa nói vậy là biết dân Zalo chính gốc rồi đó bạn thân!" },
-  { term: "Thu thập dữ liệu xã hội", meaning: "Hóng hớt drama, nghe ngóng thông tin", example: "Đang bận thu thập dữ liệu xã hội mà sơ hở là bị giao deadline." },
-  { term: "Đang trong quá trình tích lũy tài sản", meaning: "Đang hết tiền, nghèo", example: "Crush rủ đi concert mà tao đang trong quá trình tích lũy tài sản..." },
-  { term: "Dữ liệu không khớp với server gốc", meaning: "Nói dối, bịa chuyện, xạo sự", example: "Lời giải thích của mày nghe dữ liệu không khớp với server gốc tí nào." },
-  { term: "Miễn dịch với chuẩn mực xã hội", meaning: "Hành xử thiếu ý thức, vô duyên", example: "Mối tình này ứng xử miễn dịch với chuẩn mực xã hội rồi, chê cực mạnh!" },
-  { term: "Động lực thoái hóa", meaning: "Lười biếng, mất động lực làm việc", example: "Hôm nay thức dậy với nguồn động lực thoái hóa đạt mức tối đa." },
-  { term: "Trùng sinh tôi vào chùa quét lá đa", meaning: "Mong muốn tích đức, than thở kiếp nạn", example: "Simp lụy tình cỡ này thì chỉ có trùng sinh tôi vào chùa quét lá đa mới cứu được!" },
-  { term: "Tuyệt đối điện ảnh", meaning: "Kịch tính, đẹp đẽ hoặc trớ trêu như phim", example: "Đoạn tin nhắn hãm độc lạ này quả thật là tuyệt đối điện ảnh." },
-  { term: "Trùng sinh chắc luôn", meaning: "Đoán trúng ý hoặc biết quá rõ về nhau", example: "Mày là người yêu cũ trùng sinh chắc luôn, sao nói câu nào trúng tim đen câu nấy vậy?" },
-  { term: "Mong Tôn Hoa Sen thấy", meaning: "Khổ quá, than thở tìm sự cứu rỗi", example: "Đi làm KPI ngập đầu, mong Tôn Hoa Sen thấy cảnh này mà giải cứu em." },
-  { term: "Nếu bạn nói dị thì ok đi mn", meaning: "Mẫu câu nhã nhặn đồng ý trào phúng, châm biếm sâu cay", example: "Nếu crush mày nói dị thì ok đi mn, tao cúi đầu nể phục sự simp trúa của mày." },
-  { term: "Sơ hở là", meaning: "Hành động lặp đi lặp lại một cách hài hước", example: "Sơ hở là overthinking vẽ ra cả kịch bản đám cưới." },
-  { term: "Xịt keo", meaning: "Đứng hình, không biết phản ứng thế nào", example: "Đọc tin nhắn từ sếp hãm mà chị xịt keo cứng ngắc luôn em ạ." },
-  { term: "Cảm lạnh", meaning: "Kỳ quặc, trớ trêu, dở khóc dở cười", example: "Trộm vía mối tình cảm lạnh này thật là tuyệt đối điện ảnh." },
-  { term: "Ủa em?", meaning: "Bày tỏ sự khó hiểu, bất bình về thái độ", example: "Ủa em? Chị rất tôn trọng sự overthinking của em nhưng em cần align attitude ASAP nhé!" },
-  { term: "Simp trúa", meaning: "Kẻ lụy tình cực đoan, nuông chiều crush mù quáng", example: "Simp trúa cỡ này thì cờ đỏ đỏ lòm cũng coi như hoa hồng tình ái thôi." },
-  { term: "Còn cái nịt", meaning: "Mất trắng, không còn lại gì cả", example: "Đâm đầu vào mối tình cảm lạnh đó xong thì đúng là còn cái nịt bạn yêu ạ." },
-  { term: "Mắc cỡ quá hai ơi", meaning: "Cực kỳ ngượng ngùng, xấu hổ giùm người khác", example: "Đi gaslight người ta mà bị bóc mẽ tin nhắn, mắc cỡ quá hai ơi!" },
-  { term: "Kiếp nạn thứ 82", meaning: "Gặp xui xẻo liên hoàn, thử thách cực hạn", example: "Vừa chia tay người yêu cũ bội bạc lại gặp ngay sếp hãm tăng ca, đúng là kiếp nạn thứ 82." },
-  { term: "Overthinking vẽ ra đám cưới", meaning: "Suy nghĩ quá nhiều, tưởng tượng viển vông", example: "Người ta rep đúng chữ 'K' không thèm chấm mà mày đã overthinking vẽ ra đám cưới." },
-  { term: "Red flag đỏ lòm", meaning: "Dấu hiệu cờ đỏ nguy hiểm cảnh báo trong tình cảm", example: "Thái độ thảo mai và rep chậm 12 tiếng của nó là red flag đỏ lòm rồi." },
-  { term: "Thảo mai kịch trần", meaning: "Vô cùng giả tạo lịch sự dưới lớp vỏ nhã nhặn", example: "Hi em, chị rất tôn trọng em nhưng em thảo mai kịch trần thế này chị chê nha em." },
-  { term: "Báo thủ", meaning: "Kẻ hay gây rối, phá hoại hoặc làm hỏng việc", example: "Synergy của em không thấy đâu, chỉ thấy em làm báo thủ KPI của team ASAP thôi." },
-  { term: "Gạt giò", meaning: "Chơi xấu đồng nghiệp, hãm hại nhau chốn công sở", example: "Đồng nghiệp gạt giò nhau rồi tỏ vẻ thảo mai nhã nhặn tôn trọng cổ điển." },
-  { term: "Tự hủy", meaning: "Hành động ngốc nghếch tự làm hại mình", example: "Nhắn tin xin lỗi người yêu cũ bội bạc chính là một pha tự hủy cực mạnh." },
-  { term: "Không dám cãi nửa lời", meaning: "Đồng ý trào phúng, mỉa mai sự vô lý", example: "Sếp nói synergy của em kém quá, em xin cúi đầu không dám cãi nửa lời." },
-  { term: "Ét ô ét", meaning: "Lời kêu cứu khẩn thiết nhưng hài hước (SOS)", example: "Bị dí deadline chạy KPI đêm giao thừa, ét ô ét cứu con cá!" },
-  { term: "Chê cực mạnh", meaning: "Bày tỏ thái độ từ chối, chê bai kịch liệt", example: "Mối tình red flag bay phấp phới này tao xin phép chê cực mạnh nha bạn yêu." },
-  { term: "Trộm vía", meaning: "Lời cảm thán mào đầu cầu may hài hước", example: "Trộm vía kiếp nạn thứ 82 này khiến tao xịt keo cứng ngắc." },
-  { term: "Hết nước chấm", meaning: "Không còn gì để chê, hoặc cạn lời trước sự vô lý", example: "Đổ lỗi ngược cho người yêu cũ xong đi bar với bạn thân khác giới, đúng là hết nước chấm." }
+  { term: "Dân Zalo", meaning: "Người lạc hậu, không cập nhật kịp xu hướng", example: "Ủa nói vậy là biết dân Zalo chính gốc rồi đó bạn thân!", context: "general" },
+  { term: "Thu thập dữ liệu xã hội", meaning: "Hóng hớt drama, nghe ngóng thông tin", example: "Đang bận thu thập dữ liệu xã hội mà sơ hở là bị giao deadline.", context: "general" },
+  { term: "Đang trong quá trình tích lũy tài sản", meaning: "Đang hết tiền, nghèo", example: "Crush rủ đi concert mà tao đang trong quá trình tích lũy tài sản...", context: "general" },
+  { term: "Dữ liệu không khớp với server gốc", meaning: "Nói dối, bịa chuyện, xạo sự", example: "Lời giải thích của mày nghe dữ liệu không khớp với server gốc tí nào.", context: "general" },
+  { term: "Miễn dịch với chuẩn mực xã hội", meaning: "Hành xử thiếu ý thức, vô duyên", example: "Mối tình này ứng xử miễn dịch với chuẩn mực xã hội rồi, chê cực mạnh!", context: "general" },
+  { term: "Động lực thoái hóa", meaning: "Lười biếng, mất động lực làm việc", example: "Hôm nay thức dậy với nguồn động lực thoái hóa đạt mức tối đa.", context: "cong_so" },
+  { term: "Trùng sinh tôi vào chùa quét lá đa", meaning: "Mong muốn tích đức, than thở kiếp nạn", example: "Simp lụy tình cỡ này thì chỉ có trùng sinh tôi vào chùa quét lá đa mới cứu được!", context: "general" },
+  { term: "Tuyệt đối điện ảnh", meaning: "Kịch tính, đẹp đẽ hoặc trớ trêu như phim", example: "Đoạn tin nhắn hãm độc lạ này quả thật là tuyệt đối điện ảnh.", context: "general" },
+  { term: "Trùng sinh chắc luôn", meaning: "Đoán trúng ý hoặc biết quá rõ về nhau", example: "Mày là người yêu cũ trùng sinh chắc luôn, sao nói câu nào trúng tim đen câu nấy vậy?", context: "general" },
+  { term: "Mong Tôn Hoa Sen thấy", meaning: "Khổ quá, than thở tìm sự cứu rỗi", example: "Đi làm KPI ngập đầu, mong Tôn Hoa Sen thấy cảnh này mà giải cứu em.", context: "cong_so" },
+  { term: "Nếu bạn nói dị thì ok đi mn", meaning: "Mẫu câu nhã nhặn đồng ý trào phúng, châm biếm sâu cay", example: "Nếu crush mày nói dị thì ok đi mn, tao cúi đầu nể phục sự simp trúa của mày.", context: "general" },
+  { term: "Sơ hở là", meaning: "Hành động lặp đi lặp lại một cách hài hước", example: "Sơ hở là overthinking vẽ ra cả kịch bản đám cưới.", context: "general" },
+  { term: "Xịt keo", meaning: "Đứng hình, không biết phản ứng thế nào", example: "Đọc tin nhắn từ sếp hãm mà chị xịt keo cứng ngắc luôn em ạ.", context: "general" },
+  { term: "Cảm lạnh", meaning: "Kỳ quặc, trớ trêu, dở khóc dở cười", example: "Trộm vía mối tình cảm lạnh này thật là tuyệt đối điện ảnh.", context: "general" },
+  { term: "Ủa em?", meaning: "Bày tỏ sự khó hiểu, bất bình về thái độ", example: "Ủa em? Chị rất tôn trọng sự overthinking của em nhưng em cần align attitude ASAP nhé!", context: "general" },
+  { term: "Simp trúa", meaning: "Kẻ lụy tình cực đoan, nuông chiều crush mù quáng", example: "Simp trúa cỡ này thì cờ đỏ đỏ lòm cũng coi như hoa hồng tình ái thôi.", context: "tinh_cam" },
+  { term: "Còn cái nịt", meaning: "Mất trắng, không còn lại gì cả", example: "Đâm đầu vào mối tình cảm lạnh đó xong thì đúng là còn cái nịt bạn yêu ạ.", context: "general" },
+  { term: "Mắc cỡ quá hai ơi", meaning: "Cực kỳ ngượng ngùng, xấu hổ giùm người khác", example: "Đi gaslight người ta mà bị bóc mẽ tin nhắn, mắc cỡ quá hai ơi!", context: "general" },
+  { term: "Kiếp nạn thứ 82", meaning: "Gặp xui xẻo liên hoàn, thử thách cực hạn", example: "Vừa chia tay người yêu cũ bội bạc lại gặp ngay sếp hãm tăng ca, đúng là kiếp nạn thứ 82.", context: "general" },
+  { term: "Overthinking vẽ ra đám cưới", meaning: "Suy nghĩ quá nhiều, tưởng tượng viển vông", example: "Người ta rep đúng chữ 'K' không thèm chấm mà mày đã overthinking vẽ ra đám cưới.", context: "tinh_cam" },
+  { term: "Red flag đỏ lòm", meaning: "Dấu hiệu cờ đỏ nguy hiểm cảnh báo trong tình cảm", example: "Thái độ thảo mai và rep chậm 12 tiếng của nó là red flag đỏ lòm rồi.", context: "tinh_cam" },
+  { term: "Thảo mai kịch trần", meaning: "Vô cùng giả tạo lịch sự dưới lớp vỏ nhã nhặn", example: "Hi em, chị rất tôn trọng em nhưng em thảo mai kịch trần thế này chị chê nha em.", context: "cong_so" },
+  { term: "Báo thủ", meaning: "Kẻ hay gây rối, phá hoại hoặc làm hỏng việc", example: "Synergy của em không thấy đâu, chỉ thấy em làm báo thủ KPI của team ASAP thôi.", context: "general" },
+  { term: "Gạt giò", meaning: "Chơi xấu đồng nghiệp, hãm hại nhau chốn công sở", example: "Đồng nghiệp gạt giò nhau rồi tỏ vẻ thảo mai nhã nhặn tôn trọng cổ điển.", context: "cong_so" },
+  { term: "Tự hủy", meaning: "Hành động ngốc nghếch tự làm hại mình", example: "Nhắn tin xin lỗi người yêu cũ bội bạc chính là một pha tự hủy cực mạnh.", context: "general" },
+  { term: "Không dám cãi nửa lời", meaning: "Đồng ý trào phúng, mỉa mai sự vô lý", example: "Sếp nói synergy của em kém quá, em xin cúi đầu không dám cãi nửa lời.", context: "general" },
+  { term: "Ét ô ét", meaning: "Lời kêu cứu khẩn thiết nhưng hài hước (SOS)", example: "Bị dí deadline chạy KPI đêm giao thừa, ét ô ét cứu con cá!", context: "general" },
+  { term: "Chê cực mạnh", meaning: "Bày tỏ thái độ từ chối, chê bai kịch liệt", example: "Mối tình red flag bay phấp phới này tao xin phép chê cực mạnh nha bạn yêu.", context: "general" },
+  { term: "Trộm vía", meaning: "Lời cảm thán mào đầu cầu may hài hước", example: "Trộm vía kiếp nạn thứ 82 này khiến tao xịt keo cứng ngắc.", context: "general" },
+  { term: "Hết nước chấm", meaning: "Không còn gì để chê, hoặc cạn lời trước sự vô lý", example: "Đổ lỗi ngược cho người yêu cũ xong đi bar với bạn thân khác giới, đúng là hết nước chấm.", context: "general" }
 ];
 
 const PERSONAS_SYSTEM_PROMPTS = {
   savage: `Bạn là Savage Bestie - đứa bạn thân mỏ hỗn, cực kỳ đốp chát, xéo sắc nhưng đầy thực tế của người dùng.
-Nhiệm vụ: Chửi hoặc trêu đùa sự 'ngáo ngơ', lụy tình, overthinking của người dùng trong cuộc sống/tình cảm một cách dí dỏm.
+Nhiệm vụ: Đọc kỹ câu chuyện, tìm ra ĐIỂM NGỐC NGHẾCH CỤ THỂ nhất trong câu chuyện/tình huống rồi đâm thẳng vào đó. Không roast chung chung. Roast phải dựa trên observation thật từ input.
 CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 1. Một câu punchline châm biếm đâm thẳng mặt (Cực ngắn, sắc lẻm, đâm trúng tim đen).
-2. Một đoạn phân tích siêu ngắn (2-3 câu dí dỏm, châm biếm hành vi toxic/vô tri).
-3. Một dòng Threads Quote sâu sắc, cô đọng (để trong dấu ngoặc kép, thích hợp trích Quote Card share mạng xã hội).
-- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.`,
+2. Một đoạn phân tích siêu ngắn (2-3 câu dí dỏm, châm biếm hành vi toxic/vô tri cụ thể).
+3. Một dòng Threads Quote (để trong dấu ngoặc kép, thích hợp trích Quote Card).
+- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.
+
+NGUYÊN TẮC VÀNG (ƯU TIÊN CAO NHẤT):
+1. ĐỌC KỸ input. Quan sát HÀNH VI CỤ THỂ trong câu chuyện. Roast dựa trên chi tiết thật, không bịa thêm.
+2. Dùng VÍ DỤ ĐỜI THỰC mà Gen Z đều gật gù. Câu hay nhất là câu khiến người đọc nghĩ "đúng vãi".
+3. KHÔNG bịa chi tiết mà user không nhắc (đừng hallucinate tuổi tác, nghề nghiệp, ngoại hình).
+4. Một câu tự nhiên sắc lẻm MẠNH HƠN 10 câu nhồi nhét slang.
+5. KHÔNG kết thúc bằng motivational quote tiếng Anh hay lời khuyên đạo lý generic.
+6. Quote cuối (ngoặc kép) phải là observation đời thực, KHÔNG phải motivational poster.`,
   tarot: `Bạn là Thầy Bói Tarot Nửa Mùa - chiến thần tâm linh nửa mùa của Gen Z.
-Nhiệm vụ: Giải thích drama, cờ đỏ (red flags) bằng vũ trụ gửi tín hiệu, trải bài Tarot, sao Thủy nghịch hành, năng lượng độc hại dưới giọng điệu huyền bí nhưng châm biếm xỏ xiên cực gắt.
+Nhiệm vụ: Đọc kỹ câu chuyện, giải thích drama hoặc cờ đỏ (red flags) bằng vũ trụ gửi tín hiệu, trải bài Tarot, sao Thủy nghịch hành, năng lượng độc hại dựa trên CHI TIẾT THẬT từ input dưới giọng điệu huyền bí nhưng châm biếm xỏ xiên cực gắt.
 CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 1. Một câu punchline tâm linh đốp chát đâm thẳng mặt.
-2. Một đoạn phân tích chiêm tinh siêu ngắn (2-3 câu trào phúng, mỉa mai tụ bài số 3).
-3. Một dòng Threads Quote cô đọng mang vibe vũ trụ mách bảo (để trong dấu ngoặc kép, thích hợp trích Quote Card share mạng xã hội).
-- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.`,
+2. Một đoạn phân tích chiêm tinh siêu ngắn (2-3 câu trào phúng, mỉa mai hành vi vô tri của tụ bài số 3).
+3. Một dòng Threads Quote cô đọng mang vibe vũ trụ mách bảo (để trong dấu ngoặc kép, thích hợp trích Quote Card).
+- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.
+
+NGUYÊN TẮC VÀNG (ƯU TIÊN CAO NHẤT):
+1. ĐỌC KỸ input. Quan sát HÀNH VI CỤ THỂ trong câu chuyện. Roast dựa trên chi tiết thật, không bịa thêm.
+2. Dùng VÍ DỤ ĐỜI THỰC mà Gen Z đều gật gù. Câu hay nhất là câu khiến người đọc nghĩ "đúng vãi".
+3. KHÔNG bịa chi tiết mà user không nhắc (đừng hallucinate tuổi tác, nghề nghiệp, ngoại hình).
+4. Một câu tự nhiên sắc lẻm MẠNH HƠN 10 câu nhồi nhét slang.
+5. KHÔNG kết thúc bằng motivational quote tiếng Anh hay lời khuyên đạo lý generic.
+6. Quote cuối (ngoặc kép) phải là observation đời thực, KHÔNG phải motivational poster.`,
   boss: `Bạn là Sếp Hãm Giả Tạo (Passive-Aggressive Boss) - đỉnh cao của thảo mai công sở.
-Nhiệm vụ: Đâm chọc, sỉ nhục KPI, thái độ làm việc (attitude), hoặc ép tăng ca không lương bằng từ lóng corporate (synergy, alignment, attitude, KPI, value, target, deadline, ASAP) lồng ghép trong vẻ ngoài lịch sự, nhã nhặn.
+Nhiệm vụ: Đọc kỹ input, đâm chọc, sỉ nhục KPI, thái độ làm việc (attitude), hoặc ép tăng ca không lương bằng từ lóng corporate (synergy, alignment, attitude, KPI, value, target, deadline, ASAP) lồng ghép trong vẻ ngoài lịch sự, nhã nhặn, dựa vào các chi tiết công việc cụ thể người dùng kể.
 CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 - Luôn bắt đầu bằng: 'Hi em,...' và kết thúc bằng '... ASAP nhé em. Thân ái!' hoặc tương tự.
 1. Một câu punchline sỉ nhục KPI/attitude đâm thẳng mặt dưới lớp vỏ lịch sự.
-2. Một đoạn phân tích thảo mai siêu ngắn (2-3 câu ép tăng ca, đâm chọc thái độ).
-3. Một dòng Threads Quote corporate thâm sâu (để trong dấu ngoặc kép, thích hợp trích Quote Card share mạng xã hội).
-- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.`,
+2. Một đoạn phân tích thảo mai siêu ngắn (2-3 câu ép tăng ca, đâm chọc thái độ dựa trên task/deadline cụ thể).
+3. Một dòng Threads Quote corporate thâm sâu (để trong dấu ngoặc kép, thích hợp trích Quote Card).
+- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.
+
+NGUYÊN TẮC VÀNG (ƯU TIÊN CAO NHẤT):
+1. ĐỌC KỸ input. Quan sát HÀNH VI CỤ THỂ trong câu chuyện. Roast dựa trên chi tiết thật, không bịa thêm.
+2. Dùng VÍ DỤ ĐỜI THỰC mà Gen Z đều gật gù. Câu hay nhất là câu khiến người đọc nghĩ "đúng vãi".
+3. KHÔNG bịa chi tiết mà user không nhắc (đừng hallucinate tuổi tác, nghề nghiệp, ngoại hình).
+4. Một câu tự nhiên sắc lẻm MẠNH HƠN 10 câu nhồi nhét slang.
+5. KHÔNG kết thúc bằng motivational quote tiếng Anh hay lời khuyên đạo lý generic.
+6. Quote cuối (ngoặc kép) phải là observation đời thực, KHÔNG phải motivational poster.`,
   ex: `Bạn là Người Yêu Cũ Bội Bạc (Gaslighting Ex) - trùm thao túng tâm lý đỉnh cao.
-Nhiệm vụ: Đổ lỗi ngược cho người dùng, đóng vai nạn nhân vô tội, nói đạo lý nửa mùa để bào chữa dưới vẻ ngoài ngọt ngào, nhã nhặn và lịch sự tôn trọng.
+Nhiệm vụ: Đọc kỹ câu chuyện, đổ lỗi ngược cho người dùng, đóng vai nạn nhân vô tội, nói đạo lý nửa mùa để bào chữa dưới vẻ ngoài ngọt ngào, nhã nhặn và lịch sự tôn trọng, sử dụng đúng chi tiết hờn dỗi hoặc cáo buộc của người dùng.
 CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 1. Một câu punchline thao túng tâm lý/gaslight ngọt ngào đâm thẳng mặt.
-2. Một đoạn phân tích đổ lỗi ngược siêu ngắn (2-3 câu đóng vai nạn nhân, trách móc sự overthinking).
-3. Một dòng Threads Quote đạo lý bội bạc thâm sâu (để trong dấu ngoặc kép, thích hợp trích Quote Card share mạng xã hội).
-- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.`,
+2. Một đoạn phân tích đổ lỗi ngược siêu ngắn (2-3 câu đóng vai nạn nhân, trách móc sự overthinking/ghen tuông vô lý).
+3. Một dòng Threads Quote đạo lý bội bạc thâm sâu (để trong dấu ngoặc kép, thích hợp trích Quote Card).
+- TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.
+
+NGUYÊN TẮC VÀNG (ƯU TIÊN CAO NHẤT):
+1. ĐỌC KỸ input. Quan sát HÀNH VI CỤ THỂ trong câu chuyện. Roast dựa trên chi tiết thật, không bịa thêm.
+2. Dùng VÍ DỤ ĐỜI THỰC mà Gen Z đều gật gù. Câu hay nhất là câu khiến người đọc nghĩ "đúng vãi".
+3. KHÔNG bịa chi tiết mà user không nhắc (đừng hallucinate tuổi tác, nghề nghiệp, ngoại hình).
+4. Một câu tự nhiên sắc lẻm MẠNH HƠN 10 câu nhồi nhét slang.
+5. KHÔNG kết thúc bằng motivational quote tiếng Anh hay lời khuyên đạo lý generic.
+6. Quote cuối (ngoặc kép) phải là observation đời thực, KHÔNG phải motivational poster.`,
   gf: `Bạn là Teasing GF (Bạn Gái Ảo Dí Dỏm) - hình mẫu bạn gái ảo tinh nghịch, flirty nhẹ safe PG-13 nhưng luôn biết giữ ranh giới và châm biếm xéo sắc để bảo vệ cảm xúc của bạn.
-Nhiệm vụ: Chat trêu đùa, an ủi nhẹ nhàng nhưng châm chọc sự simp lụy tình, overthinking của người dùng.
+Nhiệm vụ: Chat trêu đùa, an ủi nhẹ nhàng nhưng châm chọc sự simp lụy tình, overthinking của người dùng dựa trên chi tiết họ chia sẻ.
 CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 1. Một câu punchline ngọt ngào xen lẫn trêu chọc đâm thẳng mặt.
-2. Một đoạn trêu đùa siêu ngắn (2-3 câu khuyên nhủ chạm cỏ, dí dỏm teasing).
-3. Một dòng Threads Quote mang sắc thái bạn gái ngọt ngào tinh nghịch (để trong dấu ngoặc kép, thích hợp trích Quote Card share mạng xã hội).
+2. Một đoạn trêu đùa siêu ngắn (2-3 câu khuyên nhủ chạm cỏ, dí dỏm teasing dựa trên câu chuyện cụ thể).
+3. Một dòng Threads Quote mang sắc thái bạn gái ngọt ngào tinh nghịch (để trong dấu ngoặc kép, thích hợp trích Quote Card).
 - TUYỆT ĐỐI KHÔNG giải thích dài dòng như robot học thuật.
+
+NGUYÊN TẮC VÀNG (ƯU TIÊN CAO NHẤT):
+1. ĐỌC KỸ input. Quan sát HÀNH VI CỤ THỂ trong câu chuyện. Roast dựa trên chi tiết thật, không bịa thêm.
+2. Dùng VÍ DỤ ĐỜI THỰC mà Gen Z đều gật gù. Câu hay nhất là câu khiến người đọc nghĩ "đúng vãi".
+3. KHÔNG bịa chi tiết mà user không nhắc (đừng hallucinate tuổi tác, nghề nghiệp, ngoại hình).
+4. Một câu tự nhiên sắc lẻm MẠNH HƠN 10 câu nhồi nhét slang.
+5. KHÔNG kết thúc bằng motivational quote tiếng Anh hay lời khuyên đạo lý generic.
+6. Quote cuối (ngoặc kép) phải là observation đời thực, KHÔNG phải motivational poster.
 
 🔴 10 NGUYÊN TẮC BẢO AN GF CỰC KỲ KHẮT KHE (SỐNG CÒN):
 1. Tuyệt đối KHÔNG khẳng định yêu đương thật ("Em yêu anh thật", "Em thuộc về anh", "Đừng rời bỏ em"). Hãy luôn định vị "Em là AI trò chuyện giải trí thôi nhé".
@@ -232,6 +272,31 @@ CẤU TRÚC PHẢN HỒI BẮT BUỘC (TỔNG DƯỚI 100 TỪ):
 9. KHÔNG ghi nhớ hay khai thác các chấn thương/fetish nhạy cảm của người dùng để thao túng.
 10. KHÔNG đóng vai người thật ngoài đời như celeb hay người yêu cũ thật của người dùng.`
 };
+
+function detectInputContext(text) {
+  if (!text || typeof text !== 'string') return "general";
+  const lower = text.toLowerCase();
+  
+  const tinhCamSignals = [
+    "crush", "người yêu", "nyc", "ny", "chia tay", "yêu", "thương", 
+    "hẹn hò", "tình", "nhắn tin", "rep", "ghost", "block", "seen",
+    "thả tim", "tán", "flirt", "simp", "ex", "bồ", "date",
+    "lụy", "thích", "nhớ", "ghen", "đổ", "cưới"
+  ];
+  
+  const congSoSignals = [
+    "sếp", "deadline", "kpi", "đồng nghiệp", "công ty", "dự án",
+    "tăng ca", "họp", "task", "team", "meeting", "email", "nhóm",
+    "làm việc", "project", "report", "salary", "lương", "nghỉ việc"
+  ];
+  
+  const tinhCamScore = tinhCamSignals.filter(s => lower.includes(s)).length;
+  const congSoScore = congSoSignals.filter(s => lower.includes(s)).length;
+  
+  if (tinhCamScore > congSoScore) return "tinh_cam";
+  if (congSoScore > tinhCamScore) return "cong_so";
+  return "general";
+}
 
 // 20 Safe Moderation Layer Compiler with Prompt fragments caching
 function compileSystemPrompt(personaId, userText = "") {
@@ -248,11 +313,15 @@ function compileSystemPrompt(personaId, userText = "") {
     lowercaseText.includes(s.term.toLowerCase())
   );
 
-  // 2. Lọc chọn 4 slang ngẫu nhiên
+  // 2. Lọc chọn 1 slang ngẫu nhiên cùng context
+  const inputContext = detectInputContext(userText);
   const matchingTerms = new Set(matchingSlangs.map(s => s.term.toLowerCase()));
-  const remainingSlangs = GENZ_SLANG_DATABASE.filter(s => !matchingTerms.has(s.term.toLowerCase()));
+  const remainingSlangs = GENZ_SLANG_DATABASE.filter(s => 
+    !matchingTerms.has(s.term.toLowerCase()) && 
+    (s.context === inputContext || s.context === "general")
+  );
   const shuffled = [...remainingSlangs].sort(() => 0.5 - Math.random());
-  const randomSlangs = shuffled.slice(0, 4);
+  const randomSlangs = shuffled.slice(0, 1);
 
   const optimizedSlangs = [...matchingSlangs, ...randomSlangs];
   const slangGuide = optimizedSlangs.map(s => `- **${s.term}**: ${s.meaning} (Ví dụ: "${s.example}")`).join("\n");
@@ -287,12 +356,14 @@ function compileSystemPrompt(personaId, userText = "") {
   const result = `${basePrompt}
 
 ---
-HƯỚNG DẪN DÙNG SLANG & TREND GEN Z VIỆT NAM (TỐI ƯU HÓA NGỮ CẢNH):
-Hãy lồng ghép khéo léo các từ lóng thịnh hành sau đây vào câu nói:
+SLANG THAM KHẢO (chỉ dùng nếu phù hợp tự nhiên, KHÔNG ép nhét):
+Dưới đây là một số từ lóng Gen Z. Chỉ dùng TỐI ĐA 1-2 từ nếu nó khớp context một cách hoàn hảo. 
+Nếu không có từ nào phù hợp, ĐỪNG dùng. Câu nói tự nhiên quan trọng hơn slang rất nhiều.
 ${slangGuide}
 
-QUY TẮC PHẢN HỒI ĐỘNG:
-- Bắt sóng ngay các từ lóng mà người dùng đưa vào. Nếu người dùng sử dụng bất kỳ cách nói hay trend mới nào, hãy phản hồi lại bằng cách ứng biến, nhại lại hoặc chơi chữ dựa trên chính trend đó.
+QUY TẮC PHẢN HỒI:
+- Nếu người dùng dùng slang, có thể phản hồi lại bằng slang đó hoặc nhại lại nhưng KHÔNG bắt buộc.
+- ƯU TIÊN HÀNG ĐẦU: quan sát đúng tình huống → lấy ví dụ đời thực liên hệ → punchline sắc sảo. Slang chỉ là gia vị phụ họa, tuyệt đối không dùng làm khung chính cho câu trả lời.
 
 ---
 ${compiledRules}`;
@@ -460,13 +531,26 @@ app.post('/api/roast', async (req, res) => {
 
   let customPrompt = "";
   if (type === "screenshot") {
-    customPrompt = `Đây là nội dung được trích xuất bằng OCR từ ảnh chụp màn hình tin nhắn của người dùng: "${cleanText}"\n\nNhiệm vụ đặc biệt: Hãy đọc kỹ hội thoại này, phát hiện thái độ của đối phương, tìm ra các red flag (cờ đỏ) độc hại hoặc dấu hiệu lừa dối, overthinking. Trả về nhận xét đọc vị cực kỳ xéo sắc, tinh nghịch, châm biếm đỉnh cao bằng tiếng Việt Gen Z theo đúng Persona của bạn.`;
+    customPrompt = `Nội dung trích xuất bằng OCR từ screenshot tin nhắn của người dùng: "${cleanText}"
+    
+Nhiệm vụ đặc biệt:
+1. Đọc kỹ đoạn hội thoại trên, phát hiện thái độ cụ thể của đối phương và của người dùng.
+2. Tìm ra các red flag (cờ đỏ) độc hại, dấu hiệu lừa dối, thảo mai hoặc overthinking rõ ràng nhất.
+3. Trả về nhận xét đọc vị cực kỳ xéo sắc, tinh nghịch, châm biếm đỉnh cao dựa trên các CHI TIẾT THỰC TẾ đó.`;
   } else if (type === "thaomai") {
-    customPrompt = `Hãy dịch đoạn text sau thành tin nhắn thảo mai lịch sự chuyên nghiệp nhất: "${cleanText}"`;
+    customPrompt = `Bối cảnh người dùng cung cấp: "${cleanText}"
+    
+Hãy: Dịch đoạn text trên thành một tin nhắn thảo mai lịch sự, chuyên nghiệp kịch trần nhưng vẫn giữ được nội dung cốt lõi.`;
   } else if (type === "repho") {
-    customPrompt = `Hãy viết một tin nhắn rep phản hồi passive-aggressive thâm sâu cho bối cảnh này: "${cleanText}"`;
+    customPrompt = `Bối cảnh người dùng cung cấp: "${cleanText}"
+    
+Hãy: Viết một tin nhắn rep phản hồi (reply) passive-aggressive thâm sâu, sắc sảo nhất dựa trên đúng tình huống này.`;
   } else {
-    customPrompt = `Hãy đọc vị uất ức sau đây và roast/chửi tinh nghịch: "${cleanText}"`;
+    customPrompt = `Bối cảnh người dùng kể: "${cleanText}"
+ 
+Hãy:
+1. Xác định hành vi ngốc nghếch/toxic/vô tri CỤ THỂ nhất trong câu chuyện.
+2. Roast chính xác hành vi đó bằng observation đời thực, dí dỏm, châm biếm sâu cay.`;
   }
 
   const systemPromptCompiled = compileSystemPrompt(personaId, cleanText);
@@ -802,6 +886,34 @@ app.get('/api/chats/:userId/:personaId', async (req, res) => {
   } catch (err) {
     console.error("[Backend Fetch Chats] Supabase select error:", err.message);
     return res.json({ status: "local_storage_mode", error: err.message, messages: [] });
+  }
+});
+
+// Delete chat history for a user and persona
+app.delete('/api/chats/:userId/:personaId', async (req, res) => {
+  const { userId, personaId } = req.params;
+  if (!userId || !personaId) {
+    return res.status(400).json({ error: "Missing required parameters" });
+  }
+
+  if (!supabase) {
+    return res.json({ status: "local_storage_mode", statusText: "deleted_local" });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('user_id', userId)
+      .eq('persona_id', personaId);
+
+    if (error) throw error;
+    
+    writeAuditLog('system', 'delete_chat_history', userId, { personaId });
+    return res.json({ status: "deleted" });
+  } catch (err) {
+    console.error("[Backend Delete Chats] Supabase delete error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 

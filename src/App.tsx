@@ -6,6 +6,7 @@ import {
   syncUserProfileDB, 
   fetchChatHistoryDB, 
   saveChatMessageDB, 
+  deleteChatHistoryDB,
   type ChatPersona 
 } from './services/gemini';
 import { SettingsModal } from './components/SettingsModal';
@@ -288,6 +289,42 @@ function App() {
     setActivePersona(p);
   };
 
+  const handleNewChat = async () => {
+    const isConfirmed = window.confirm(`Ủa bạn thân ơi, có chắc chắn muốn xóa sạch sành sanh lịch sử chat cũ với ${activePersona.name} để tạo cuộc trò chuyện mới không? Không khôi phục lại được đâu nha!`);
+    if (!isConfirmed) return;
+
+    try {
+      setIsGenerating(true);
+      setLoadingText("Đang dọn dẹp phòng chat...");
+
+      // 1. Gọi API để xóa lịch sử trên Cloud database Supabase
+      if (userId) {
+        await deleteChatHistoryDB(userId, activePersona.id);
+      }
+
+      // 2. Tạo tin nhắn chào mừng mặc định
+      const welcomeMsg: LocalChatMessage = {
+        messageId: `msg_${new Date().getTime()}_init`,
+        personaId: activePersona.id,
+        sender: 'ai',
+        messageType: 'text',
+        text: getWelcomeMessage(activePersona.id),
+        createdAt: new Date().toISOString()
+      };
+
+      // 3. Cập nhật LocalStorage và State
+      localStorage.setItem(`tb_history_${activePersona.id}`, JSON.stringify([welcomeMsg]));
+      setChatHistory([welcomeMsg]);
+      setUserInput('');
+      setAttachedScreenshot(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (e) {
+      console.error("[Client] Failed to reset chat history:", e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // --- ACTIONS ---
   
   // Image selection
@@ -469,15 +506,63 @@ function App() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* New Chat Button */}
+          <button 
+            onClick={handleNewChat} 
+            className="secondary-btn" 
+            style={{ 
+              padding: '8px 10px', 
+              border: '1px solid var(--border-neon)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              cursor: 'pointer'
+            }}
+            title="Xóa lịch sử và tạo cuộc trò chuyện mới"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-color)' }}>
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Mới</span>
+          </button>
+
           {/* Coins Wallet Pill */}
-          <div onClick={() => setIsPaymentOpen(true)} className="coin-badge" style={{ cursor: 'pointer', transition: 'box-shadow 0.2s', boxShadow: '0 0 10px rgba(245, 158, 11, 0.1)' }}>
-            Coin: {coinsBalance} <span style={{ fontWeight: 500, fontSize: '0.75rem', marginLeft: '4px', textDecoration: 'underline' }}>Nạp</span>
+          <div 
+            onClick={() => setIsPaymentOpen(true)} 
+            className="coin-badge" 
+            style={{ 
+              cursor: 'pointer', 
+              transition: 'box-shadow 0.2s', 
+              boxShadow: '0 0 10px rgba(245, 158, 11, 0.1)',
+              padding: '6px 10px'
+            }}
+          >
+            Coin: {coinsBalance} <span className="hide-on-mobile" style={{ fontWeight: 500, fontSize: '0.75rem', marginLeft: '4px', textDecoration: 'underline' }}>Nạp</span>
           </div>
 
           {/* Settings Button */}
-          <button onClick={() => setIsSettingsOpen(true)} className="secondary-btn" style={{ padding: '8px 12px', border: '1px solid var(--border-neon)' }}>
-            Cài đặt
+          <button 
+            onClick={() => setIsSettingsOpen(true)} 
+            className="secondary-btn" 
+            style={{ 
+              padding: '8px 10px', 
+              border: '1px solid var(--border-neon)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              cursor: 'pointer'
+            }}
+            title="Mở cài đặt & cổng quản lý ví"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-color)' }}>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Cài đặt</span>
           </button>
         </div>
       </header>
