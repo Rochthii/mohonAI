@@ -30,6 +30,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdateSandbox,
 }) => {
   const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -67,7 +68,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handles Email Sync with Supabase Database
+  // Handles Email Sync with Cloud Database
   const handleEmailSyncSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -78,11 +79,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       return;
     }
 
+    if (!passwordInput || passwordInput.length < 6) {
+      setErrorMessage('Mật khẩu liên kết phải có tối thiểu 6 ký tự.');
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
-      const res = await syncUserProfileDB(userId, emailInput.trim());
+      const res = await syncUserProfileDB(userId, emailInput.trim(), passwordInput);
       if (res.status === 'synced' || res.status === 'registered') {
+        
+        // If checking an existing email and server returned a different original userId,
+        // we switch the local device session to that userId and reload the app!
+        if (res.userId && res.userId !== userId) {
+          const profile = {
+            userId: res.userId,
+            coinsBalance: res.coinsBalance,
+            email: res.email,
+            createdAt: new Date().toISOString()
+          };
+          localStorage.setItem('tb_user_profile', JSON.stringify(profile));
+          
+          setSuccessMessage(`Tìm thấy tài khoản cũ! Đang đồng bộ hóa toàn bộ lịch sử và số dư...`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+          return;
+        }
+
         onUpdateEmail(res.email);
         onUpdateCoins(res.coinsBalance);
         setSuccessMessage(`Đồng bộ thành công! Số dư ${res.coinsBalance} Coins đã được liên kết bảo toàn đám mây.`);
@@ -90,7 +115,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setErrorMessage('Không thể đồng bộ hồ sơ. Vui lòng kiểm tra lại kết nối backend.');
       }
     } catch (err: any) {
-      setErrorMessage('Đã xảy ra lỗi đồng bộ dữ liệu ví lên đám mây.');
+      setErrorMessage(err.message || 'Đã xảy ra lỗi đồng bộ dữ liệu ví lên đám mây.');
       console.error(err);
     } finally {
       setIsSyncing(false);
@@ -215,7 +240,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Account Sync Section */}
         <div style={sectionStyle}>
-          <h3 style={subHeaderStyle}>Sao lưu đám mây Supabase</h3>
+          <h3 style={subHeaderStyle}>Sao lưu đám mây bảo mật</h3>
           
           {userEmail ? (
             <div style={loggedInBoxStyle}>
@@ -228,22 +253,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           ) : (
             <form onSubmit={handleEmailSyncSubmit} style={formStyle}>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 4px 0' }}>
-                Nhập Email để nâng cấp liên kết tài khoản. Hệ thống tự động đồng bộ hóa số dư hiện tại của thiết bị lên đám mây.
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 4px 0', lineHeight: 1.45 }}>
+                Nhập email và thiết lập mật khẩu để liên kết ví. Khi thay đổi thiết bị, bạn chỉ cần nhập đúng email và mật khẩu này để lấy lại số dư và lịch sử chat của mình.
               </p>
               
-              <div style={inputFormRowStyle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                 <input 
                   type="email" 
-                  placeholder="Nhập địa chỉ email của bạn..." 
+                  placeholder="Nhập địa chỉ email..." 
                   value={emailInput} 
                   onChange={(e) => setEmailInput(e.target.value)} 
                   style={inputStyle}
                   required
                 />
-                <button type="submit" className="glow-btn" style={{ padding: '8px 16px', fontSize: '0.8rem' }} disabled={isSyncing}>
-                  {isSyncing ? 'Đồng bộ...' : 'Liên kết'}
-                </button>
+                
+                <div style={inputFormRowStyle}>
+                  <input 
+                    type="password" 
+                    placeholder="Mật khẩu liên kết (tối thiểu 6 ký tự)..." 
+                    value={passwordInput} 
+                    onChange={(e) => setPasswordInput(e.target.value)} 
+                    style={inputStyle}
+                    required
+                  />
+                  <button type="submit" className="glow-btn" style={{ padding: '8px 16px', fontSize: '0.8rem', minWidth: '95px' }} disabled={isSyncing}>
+                    {isSyncing ? 'Đang lưu...' : 'Liên kết'}
+                  </button>
+                </div>
               </div>
 
               {errorMessage && <div style={errorStyle}>{errorMessage}</div>}

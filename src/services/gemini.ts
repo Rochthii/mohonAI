@@ -122,19 +122,23 @@ export async function analyzeScreenshot(
 
 export async function syncUserProfileDB(
   userId: string,
-  email?: string
-): Promise<{ status: string; coinsBalance: number; email: string }> {
+  email?: string,
+  password?: string
+): Promise<{ status: string; coinsBalance: number; email: string; userId?: string }> {
   try {
     const response = await fetch(`${BACKEND_BASE}/api/users/sync`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email })
+      body: JSON.stringify({ userId, email, password })
     });
-    if (!response.ok) throw new Error("Sync failed");
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || "Sync failed");
+    }
     return await response.json();
-  } catch (e) {
+  } catch (e: any) {
     console.warn("[Client DB Service] Profile sync fallback:", e);
-    return { status: "local_storage_mode", coinsBalance: 10, email: email || "" };
+    throw e;
   }
 }
 

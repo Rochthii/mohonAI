@@ -344,7 +344,7 @@ async function callGroqText(prompt, systemPrompt) {
       "Authorization": `Bearer ${GROQ_KEY}`
     },
     body: JSON.stringify({
-      model: "llama-3.1-70b-versatile",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
@@ -537,14 +537,90 @@ app.post('/api/roast', async (req, res) => {
 
 // Sync User Profile (Supabase DB ➔ LocalStorage)
 app.post('/api/users/sync', async (req, res) => {
-  const { userId, email } = req.body;
+  const { userId, email, password } = req.body;
   if (!userId) return res.status(400).json({ error: "Missing userId" });
 
   if (!supabase) {
     return res.json({ status: "local_storage_mode", coinsBalance: 10, email: email || "" });
   }
 
+  const crypto = require('crypto');
+
   try {
+    // A. PASSWORD-AUTH SYNC LOGIC (Secure Production-Real Authentication)
+    if (email && password) {
+      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+
+      // 1. Check if this email is already registered/linked to an account
+      const { data: existingEmailUser, error: emailErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email.trim())
+        .maybeSingle();
+
+      if (emailErr) throw emailErr;
+
+      if (existingEmailUser) {
+        // If email is registered, verify the password hash
+        if (existingEmailUser.password_hash && existingEmailUser.password_hash !== passwordHash) {
+          return res.status(400).json({ error: "Email này đã được liên kết với một ví khác và mật khẩu xác nhận không chính xác!" });
+        }
+        
+        // Auth passed! Sync session switching logic: Return the original owner's userId
+        writeAuditLog('system', 'sync_session_switch', existingEmailUser.id, { email });
+        return res.json({ 
+          status: "synced", 
+          coinsBalance: existingEmailUser.coins_balance, 
+          email: existingEmailUser.email, 
+          userId: existingEmailUser.id,
+          role: existingEmailUser.role || "user"
+        });
+      } else {
+        // Email is not registered yet. Link email + password_hash to the current active userId!
+        const { data: currentUser, error: selectErr } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (selectErr) throw selectErr;
+
+        if (currentUser) {
+          // If active user exists in DB, update their credentials
+          const { error: updateErr } = await supabase
+            .from('users')
+            .update({ email: email.trim(), password_hash: passwordHash })
+            .eq('id', userId);
+
+          if (updateErr) throw updateErr;
+
+          writeAuditLog('system', 'link_account_existing', userId, { email });
+          return res.json({ 
+            status: "synced", 
+            coinsBalance: currentUser.coins_balance, 
+            email: email.trim(),
+            role: currentUser.role || "user"
+          });
+        } else {
+          // Create new record with credentials
+          const { error: insertErr } = await supabase
+            .from('users')
+            .insert({ id: userId, email: email.trim(), password_hash: passwordHash, coins_balance: 10 });
+
+          if (insertErr) throw insertErr;
+
+          writeAuditLog('system', 'link_account_new', userId, { email, coinsBalance: 10 });
+          return res.json({ 
+            status: "registered", 
+            coinsBalance: 10, 
+            email: email.trim(),
+            role: "user"
+          });
+        }
+      }
+    }
+
+    // B. ANONYMOUS GUEST INITIALIZATION SYNC (Used on startup without credentials)
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -554,24 +630,30 @@ app.post('/api/users/sync', async (req, res) => {
     if (error) throw error;
 
     if (user) {
-      if (email && user.email !== email) {
-        await supabase.from('users').update({ email }).eq('id', userId);
-        writeAuditLog('system', 'update_user_email', userId, { email });
-      }
-      return res.json({ status: "synced", coinsBalance: user.coins_balance, email: user.email || email });
+      return res.json({ 
+        status: "synced", 
+        coinsBalance: user.coins_balance, 
+        email: user.email || "",
+        role: user.role || "user"
+      });
     } else {
-      // Register with 10 free trial coins
+      // Register guest user with 10 free trial coins
       const { error: insertError } = await supabase
         .from('users')
-        .insert({ id: userId, email: email || null, coins_balance: 10 });
+        .insert({ id: userId, email: null, coins_balance: 10 });
 
       if (insertError) throw insertError;
-      writeAuditLog('system', 'register_user', userId, { email, coinsBalance: 10 });
-      return res.json({ status: "registered", coinsBalance: 10, email });
+      writeAuditLog('system', 'register_guest_user', userId, { coinsBalance: 10 });
+      return res.json({ 
+        status: "registered", 
+        coinsBalance: 10, 
+        email: "",
+        role: "user"
+      });
     }
   } catch (err) {
     console.error("[Backend Sync User] Supabase sync error:", err.message);
-    return res.json({ status: "local_storage_mode", coinsBalance: 10, email: email || "", error: err.message });
+    return res.status(500).json({ error: "Lỗi đồng bộ hệ thống: " + err.message });
   }
 });
 
