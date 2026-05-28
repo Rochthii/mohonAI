@@ -11,6 +11,7 @@ import {
 import { SettingsModal } from './components/SettingsModal';
 import { PaymentModal } from './components/PaymentModal';
 import { CanvasQuote } from './components/CanvasQuote';
+import { PrivacyModal } from './components/PrivacyModal';
 import Tesseract from 'tesseract.js';
 
 interface LocalChatMessage {
@@ -146,6 +147,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // Generating States
   const [isGenerating, setIsGenerating] = useState(false);
@@ -698,11 +700,18 @@ function App() {
 
       {/* FOOTER GENERAL RULES */}
       <footer style={footerStyle}>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          **Cam kết bảo mật**: Mỏ Hỗn AI hoạt động client-side, hình ảnh screenshot được chuyển thẳng lên Gemini API để phân tích và không lưu trữ trên bất kỳ máy chủ nào khác.
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          Nội dung AI chỉ mang tính giải trí. Hình ảnh OCR được xử lý hoàn toàn trên thiết bị của bạn và không lưu trữ trên máy chủ.
         </div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-          © {new Date().getFullYear()} Mỏ Hỗn AI - AI Đọc Vị Tình Cảm & Bóc Trần Drama. Build by Solo Dev Gen Z.
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span>© {new Date().getFullYear()} Mỏ Hỗn AI</span>
+          <span style={{ opacity: 0.3 }}>·</span>
+          <button
+            onClick={() => setIsPrivacyOpen(true)}
+            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: '0.7rem', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
+          >
+            Điều Khoản &amp; Bảo Mật
+          </button>
         </div>
       </footer>
 
@@ -742,6 +751,11 @@ function App() {
           themeColor={getThemeColor()}
         />
       )}
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
 
     </div>
   );
