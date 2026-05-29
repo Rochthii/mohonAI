@@ -19,7 +19,7 @@ interface LocalChatMessage {
   messageId: string;
   personaId: string;
   sender: 'user' | 'ai';
-  messageType: 'text' | 'screenshot' | 'thaomai' | 'repho';
+  messageType: 'text' | 'screenshot' | 'thaomai' | 'repho' | 'roast';
   text: string;
   imageUrl?: string;
   createdAt: string;
@@ -143,6 +143,9 @@ function App() {
 
   // Attached Screenshot
   const [attachedScreenshot, setAttachedScreenshot] = useState<string | null>(null);
+
+  // Active Mode for unified workspace
+  const [activeMode, setActiveMode] = useState<'roast' | 'thaomai' | 'repho'>('roast');
 
   // Modals Visibility
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -349,11 +352,11 @@ function App() {
   };
 
   // Core Submit Action
-  const handleSendMessage = async (e?: React.FormEvent, customType?: 'thaomai' | 'repho') => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!userInput.trim() && !attachedScreenshot) return;
 
-    const type = customType || 'text';
+    const type = attachedScreenshot ? 'screenshot' : activeMode;
     const textToSend = userInput;
     const screenshotToSend = attachedScreenshot;
 
@@ -697,23 +700,73 @@ function App() {
 
         {/* INPUT WORKSPACE */}
         <div style={inputContainerStyle}>
-          {/* Quick Utility Actions Row */}
-          <div style={quickActionsRowStyle}>
-            <button 
-              onClick={() => handleSendMessage(undefined, 'thaomai')} 
-              style={quickBtnStyle}
-              title="Dịch văn bản trong ô chat thành tin nhắn công sở thảo mai, lịch sự"
-              disabled={!userInput.trim() || isGenerating}
+          {/* Mode Selector Pill Tabs */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            borderRadius: '99px',
+            padding: '2px',
+            width: '100%',
+            gap: '2px',
+            marginBottom: '4px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setActiveMode('roast')}
+              style={{
+                flex: 1,
+                background: activeMode === 'roast' ? 'var(--accent-gradient)' : 'transparent',
+                color: activeMode === 'roast' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                padding: '7px 12px',
+                borderRadius: '99px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: activeMode === 'roast' ? 'var(--accent-glow)' : 'none'
+              }}
             >
-              Dịch Thảo Mai
+              🔥 Roast Khịa
             </button>
-            <button 
-              onClick={() => handleSendMessage(undefined, 'repho')} 
-              style={quickBtnStyle}
-              title="Soạn tin phản hồi châm biếm sâu cay cho bối cảnh tin nhắn"
-              disabled={!userInput.trim() || isGenerating}
+            <button
+              type="button"
+              onClick={() => setActiveMode('thaomai')}
+              style={{
+                flex: 1,
+                background: activeMode === 'thaomai' ? 'var(--accent-gradient)' : 'transparent',
+                color: activeMode === 'thaomai' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                padding: '7px 12px',
+                borderRadius: '99px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: activeMode === 'thaomai' ? 'var(--accent-glow)' : 'none'
+              }}
             >
-              Soạn Rep Hộ
+              🌸 Dịch Thảo Mai
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMode('repho')}
+              style={{
+                flex: 1,
+                background: activeMode === 'repho' ? 'var(--accent-gradient)' : 'transparent',
+                color: activeMode === 'repho' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                padding: '7px 12px',
+                borderRadius: '99px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: activeMode === 'repho' ? 'var(--accent-glow)' : 'none'
+              }}
+            >
+              💬 Soạn Rep Hộ
             </button>
           </div>
 
@@ -764,7 +817,15 @@ function App() {
 
             <input
               type="text"
-              placeholder={attachedScreenshot ? "Ảnh đã đính kèm! Bấm Đọc vị Screenshot..." : `Trút uất ức hoặc dán tin nhắn vào đây với ${activePersona.name}...`}
+              placeholder={
+                attachedScreenshot 
+                  ? "Ảnh đã đính kèm! Bấm Đọc vị Screenshot..." 
+                  : activeMode === 'roast' 
+                    ? `Trút uất ức hoặc dán tin nhắn vào đây với ${activePersona.name}...` 
+                    : activeMode === 'thaomai' 
+                      ? "Dán tin nhắn cục súc/thẳng thắn cần dịch thảo mai..." 
+                      : "Dán tin nhắn đối phương gửi đến để soạn tin đáp trả..."
+              }
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               style={textInputStyle}
@@ -774,10 +835,16 @@ function App() {
             <button 
               type="submit" 
               className="glow-btn" 
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              style={{ padding: '8px 16px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
               disabled={isGenerating || (!userInput.trim() && !attachedScreenshot)}
             >
-              {attachedScreenshot ? 'Đọc vị Screenshot (10 Coin)' : 'Roast (Free)'}
+              {attachedScreenshot 
+                ? 'Đọc vị Screenshot (10 Coin)' 
+                : activeMode === 'roast' 
+                  ? 'Roast (Free)' 
+                  : activeMode === 'thaomai' 
+                    ? 'Dịch Thảo Mai' 
+                    : 'Soạn Rep Hộ'}
             </button>
           </form>
         </div>
@@ -966,24 +1033,6 @@ const inputContainerStyle: React.CSSProperties = {
   background: 'rgba(0, 0, 0, 0.15)',
 };
 
-const quickActionsRowStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: '10px',
-  width: '100%',
-};
-
-const quickBtnStyle: React.CSSProperties = {
-  flex: 1,
-  background: 'rgba(255, 255, 255, 0.02)',
-  border: '1px dashed var(--border-neon)',
-  color: 'var(--text-main)',
-  padding: '6px 12px',
-  borderRadius: '8px',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  cursor: 'pointer',
-  transition: 'all 0.2s',
-};
 
 const attachedPreviewBarStyle: React.CSSProperties = {
   display: 'flex',

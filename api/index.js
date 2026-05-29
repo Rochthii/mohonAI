@@ -6,8 +6,8 @@
  * Vercel loads this file as the serverless handler for all /api/* routes.
  */
 
-// server.cjs is the same as server.js but with .cjs extension so Node.js
-// treats it as CommonJS regardless of root package.json "type": "module"
+// server.cjs is the single source of truth and entry point for backend.
+// It uses .cjs extension so Node.js treats it as CommonJS regardless of root package.json "type": "module"
 const app = require('../server.cjs');
 
 module.exports = app;
