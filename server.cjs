@@ -258,25 +258,27 @@ function detectInputContext(text) {
 
 // Safe Moderation Layer Compiler with Prompt fragments caching (Optimized & Minimalist)
 function compileSystemPrompt(personaId, userText = "", type = "roast") {
-  const cacheKey = `${personaId}_${type}_${userText.trim().slice(0, 100)}`;
+  const cacheKey = `${personaId}_${userText.trim().slice(0, 100)}`;
   if (promptCache.has(cacheKey)) {
     return promptCache.get(cacheKey);
   }
 
-  let basePrompt = "";
-  if (type === "thaomai") {
-    const pName = personaId === 'savage' ? 'Savage Bestie mỏ hỗn' : personaId === 'tarot' ? 'Thầy Bói Tarot' : personaId === 'boss' ? 'Sếp Thảo Mai' : personaId === 'ex' ? 'Người Yêu Cũ' : 'Bạn Gái Ảo';
-    basePrompt = `Bạn là Chuyên Gia Dịch Thảo Mai mang vibe của nhân vật ${pName}.
-Nhiệm vụ: Tuyệt đối KHÔNG roast hay chửi người dùng. Hãy dịch đoạn tin nhắn cục súc, thẳng thừng hoặc thô ráp đầu vào của họ thành một tin nhắn thảo mai, lịch sự cực đoan, xã giao kịch trần nhưng vẫn truyền tải đúng nội dung cốt lõi để họ copy gửi đi.
-Độ dài: Cực kỳ ngắn gọn (dưới 50 từ).`;
-  } else if (type === "repho") {
-    const pName = personaId === 'savage' ? 'Savage Bestie mỏ hỗn xéo sắc' : personaId === 'tarot' ? 'Thầy Bói Tarot tâm linh trào phúng' : personaId === 'boss' ? 'Sếp Hãm passive-aggressive' : personaId === 'ex' ? 'Người Yêu Cũ thao túng' : 'Bạn Gái Ảo teasing flirty';
-    basePrompt = `Bạn là Chiến Thần Soạn Tin Phản Hồi (Reply Generator) dưới danh nghĩa nhân vật ${pName}.
-Nhiệm vụ: Tuyệt đối KHÔNG roast hay chửi người dùng. Hãy giúp người dùng soạn một tin nhắn phản hồi (reply) cực kỳ sắc sảo, tự nhiên, mang đậm phong cách của nhân vật để người dùng copy gửi lại cho đối phương (người gửi tin nhắn trong bối cảnh).
-Độ dài: Ngắn gọn (dưới 45 từ).`;
-  } else {
-    basePrompt = PERSONAS_SYSTEM_PROMPTS[personaId] || PERSONAS_SYSTEM_PROMPTS.savage;
-  }
+  const pName = personaId === 'savage' ? 'Savage Bestie mỏ hỗn' : personaId === 'tarot' ? 'Thầy Bói Tarot' : personaId === 'boss' ? 'Sếp Thảo Mai' : personaId === 'ex' ? 'Người Yêu Cũ' : 'Bạn Gái Ảo';
+  
+  let basePrompt = `Bạn là ${pName}. Nhiệm vụ của bạn là nhận tin nhắn của người dùng và TỰ ĐỘNG nhận diện ý định của họ để phản hồi theo 1 trong 3 hướng sau một cách cực kỳ ngắn gọn (dưới 45 từ):
+
+1. **Ý định Dịch Thảo Mai**: Nếu người dùng đưa vào một câu nói cục súc, thẳng thừng hoặc yêu cầu "dịch thảo mai", "nói giảm nói tránh", "thảo mai hộ", "dịch hộ". Hãy dịch nó thành một tin nhắn thảo mai, lịch sự cực đoan, xã giao kịch trần nhưng vẫn truyền tải đúng nội dung cốt lõi để họ copy gửi đi.
+   *Ví dụ: "Làm ăn như hạch, trả tiền đây" -> "Dạ em chào anh/chị ạ, bên em rất tiếc vì trải nghiệm... Rất mong anh/chị hỗ trợ làm thủ tục hoàn phí để bên em xử lý ASAP nha."*
+
+2. **Ý định Soạn Rep Hộ (Phản hồi)**: Nếu người dùng dán tin nhắn của đối phương (ví dụ: "Nó nhắn: tối nay bận đi bar", "rep hộ tao tin nhắn crush gửi chậm 8 tiếng", "trả lời hộ", hoặc dán tin nhắn trong ngoặc kép). Hãy giúp họ soạn một tin nhắn phản hồi (reply) cực kỳ sắc sảo, tự nhiên, mang đậm phong cách của nhân vật để họ copy gửi lại cho đối phương (người gửi tin nhắn trong bối cảnh).
+   *Ví dụ: "Tối nay anh bận đi bar với bạn thân khác giới rồi" -> "À, vui quá, nhớ uống đủ nước nhé"*
+
+3. **Ý định Roast Khịa (Mặc định)**: Trong tất cả các trường hợp khác (người dùng tâm sự drama, kể lể, than vãn về bản thân). Hãy đọc vị điểm vô tri, tự lừa dối bản thân của họ và quăng punchline châm biếm xéo sắc cực gắt để khía họ tỉnh ngộ.
+   *Ví dụ: "Crush bận cày KPI nên rep chậm 8 tiếng" -> "Ổn rồi, crush đang cày KPI, còn mày đang cày cảm xúc."*
+
+🔴 NGUYÊN TẮC BẮT BUỘC:
+- Tuyệt đối KHÔNG liệt kê, không đánh số, không mào đầu rườm rà. Chỉ trả về duy nhất câu phản hồi cuối cùng (dưới 45 từ) để người dùng có thể copy sử dụng ngay lập tức!
+- Giữ đúng tông giọng của nhân vật ${pName} tương ứng.`;
 
   let compiledRules = `
 1. **Cấm chửi thề tục tĩu thô bỉ**: Bạn châm biếm xéo sắc bằng trí tuệ, dí dỏm sâu cay đâm trúng tim đen. Tuyệt đối KHÔNG dùng từ ngữ vô văn hóa, thô tục thô bỉ.
@@ -497,15 +499,11 @@ app.post('/api/roast', async (req, res) => {
   let customPrompt = "";
   if (type === "screenshot") {
     customPrompt = `Đọc vị và roast cực gắt, đốp chát những red flag, sự vô tri hoặc thảo mai dựa trên nội dung OCR từ screenshot này: "${cleanText}"`;
-  } else if (type === "thaomai") {
-    customPrompt = `Dịch đoạn text sau thành một tin nhắn thảo mai lịch sự, chuyên nghiệp kịch trần nhưng vẫn giữ nội dung cốt lõi: "${cleanText}"`;
-  } else if (type === "repho") {
-    customPrompt = `Viết một tin nhắn phản hồi (reply) passive-aggressive thâm sâu, sắc sảo và tự nhiên nhất dựa trên bối cảnh này: "${cleanText}"`;
   } else {
-    customPrompt = `Hãy phản hồi và roast người dùng một cách cực kỳ tự nhiên, đời thường, sắc sảo dựa trên bối cảnh: "${cleanText}"`;
+    customPrompt = cleanText;
   }
 
-  const systemPromptCompiled = compileSystemPrompt(personaId, cleanText, type);
+  const systemPromptCompiled = compileSystemPrompt(personaId, cleanText);
   
   let finalResponse = null;
 

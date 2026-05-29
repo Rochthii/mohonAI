@@ -144,8 +144,7 @@ function App() {
   // Attached Screenshot
   const [attachedScreenshot, setAttachedScreenshot] = useState<string | null>(null);
 
-  // Active Mode for unified workspace
-  const [activeMode, setActiveMode] = useState<'roast' | 'thaomai' | 'repho'>('roast');
+
 
   // Modals Visibility
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -354,9 +353,7 @@ function App() {
   // Core Submit Action
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!userInput.trim() && !attachedScreenshot) return;
-
-    const type = attachedScreenshot ? 'screenshot' : activeMode;
+    const type = attachedScreenshot ? 'screenshot' : 'roast';
     const textToSend = userInput;
     const screenshotToSend = attachedScreenshot;
 
@@ -433,7 +430,7 @@ function App() {
           aiResult = await analyzeScreenshot(activePersona.id, "Lỗi trích xuất chữ. Hãy roast tinh nghịch sự vô tri của ảnh chụp này!", userId);
         }
       } else {
-        aiResult = await generateRoast(activePersona.id, textToSend, type === 'thaomai' ? 'thaomai' : type === 'repho' ? 'repho' : 'roast', userId);
+        aiResult = await generateRoast(activePersona.id, textToSend, 'roast', userId);
       }
 
       // Prepare AI reply message
@@ -700,76 +697,6 @@ function App() {
 
         {/* INPUT WORKSPACE */}
         <div style={inputContainerStyle}>
-          {/* Mode Selector Pill Tabs */}
-          <div style={{
-            display: 'flex',
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            borderRadius: '99px',
-            padding: '2px',
-            width: '100%',
-            gap: '2px',
-            marginBottom: '4px'
-          }}>
-            <button
-              type="button"
-              onClick={() => setActiveMode('roast')}
-              style={{
-                flex: 1,
-                background: activeMode === 'roast' ? 'var(--accent-gradient)' : 'transparent',
-                color: activeMode === 'roast' ? '#ffffff' : 'var(--text-muted)',
-                border: 'none',
-                padding: '7px 12px',
-                borderRadius: '99px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeMode === 'roast' ? 'var(--accent-glow)' : 'none'
-              }}
-            >
-              🔥 Roast Khịa
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('thaomai')}
-              style={{
-                flex: 1,
-                background: activeMode === 'thaomai' ? 'var(--accent-gradient)' : 'transparent',
-                color: activeMode === 'thaomai' ? '#ffffff' : 'var(--text-muted)',
-                border: 'none',
-                padding: '7px 12px',
-                borderRadius: '99px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeMode === 'thaomai' ? 'var(--accent-glow)' : 'none'
-              }}
-            >
-              🌸 Dịch Thảo Mai
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('repho')}
-              style={{
-                flex: 1,
-                background: activeMode === 'repho' ? 'var(--accent-gradient)' : 'transparent',
-                color: activeMode === 'repho' ? '#ffffff' : 'var(--text-muted)',
-                border: 'none',
-                padding: '7px 12px',
-                borderRadius: '99px',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: activeMode === 'repho' ? 'var(--accent-glow)' : 'none'
-              }}
-            >
-              💬 Soạn Rep Hộ
-            </button>
-          </div>
-
           {/* Attached image preview bar */}
           {attachedScreenshot && (
             <div style={attachedPreviewBarStyle}>
@@ -820,11 +747,7 @@ function App() {
               placeholder={
                 attachedScreenshot 
                   ? "Ảnh đã đính kèm! Bấm Đọc vị Screenshot..." 
-                  : activeMode === 'roast' 
-                    ? `Trút uất ức hoặc dán tin nhắn vào đây với ${activePersona.name}...` 
-                    : activeMode === 'thaomai' 
-                      ? "Dán tin nhắn cục súc/thẳng thắn cần dịch thảo mai..." 
-                      : "Dán tin nhắn đối phương gửi đến để soạn tin đáp trả..."
+                  : `Kể drama, dán tin nhắn để rep hộ, hoặc bảo dịch thảo mai với ${activePersona.name}...`
               }
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
@@ -838,13 +761,7 @@ function App() {
               style={{ padding: '8px 16px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
               disabled={isGenerating || (!userInput.trim() && !attachedScreenshot)}
             >
-              {attachedScreenshot 
-                ? 'Đọc vị Screenshot (10 Coin)' 
-                : activeMode === 'roast' 
-                  ? 'Roast (Free)' 
-                  : activeMode === 'thaomai' 
-                    ? 'Dịch Thảo Mai' 
-                    : 'Soạn Rep Hộ'}
+              {attachedScreenshot ? 'Đọc vị Screenshot (10 Coin)' : 'Gửi đi'}
             </button>
           </form>
         </div>
