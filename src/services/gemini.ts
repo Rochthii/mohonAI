@@ -15,43 +15,11 @@ export interface ChatPersona {
 }
 
 export const PERSONAS: Record<string, ChatPersona> = {
-  savage: {
-    id: "savage",
-    name: "Mỏ Hỗn Xéo Sắc",
-    avatar: "SB",
-    description: "Savage Bestie - Đứa bạn thân mỏ hỗn, sơ hở là chửi nhưng nói câu nào ngấm câu đấy.",
-    systemPrompt: "",
-    fallbackResponses: []
-  },
-  tarot: {
-    id: "tarot",
-    name: "Thầy Bói Tarot Nửa Mùa",
-    avatar: "TR",
-    description: "Trùm Chiêm Tinh - Giải mã mọi kiếp nạn bằng vũ trụ, sao Thủy nghịch hành và tụ bài số 3.",
-    systemPrompt: "",
-    fallbackResponses: []
-  },
-  boss: {
-    id: "boss",
-    name: "Sếp Hãm Giả Tạo",
-    avatar: "BS",
-    description: "Passive-Aggressive Boss - Đỉnh cao thảo mai công sở, sỉ nhục KPI tinh tế và ép tăng ca ASAP.",
-    systemPrompt: "",
-    fallbackResponses: []
-  },
-  ex: {
-    id: "ex",
-    name: "Người Yêu Cũ Bội Bạc",
-    avatar: "EX",
-    description: "Gaslighting Ex - Trùm thao túng tâm lý, đổ lỗi ngược, tỏ vẻ nhã nhặn đạo lý nửa mùa.",
-    systemPrompt: "",
-    fallbackResponses: []
-  },
-  gf: {
-    id: "gf",
-    name: "Bạn Gái Ảo Teasing",
-    avatar: "GF",
-    description: "Teasing GF - Hình mẫu bạn gái ảo tinh nghịch, flirty nhẹ safe PG-13, hay trêu đùa và bắt chạm cỏ.",
+  bestie: {
+    id: "bestie",
+    name: "Bạn Thân Quốc Dân",
+    avatar: "👯‍♀️",
+    description: "Đứa bạn thân tri kỷ - lúc cần thì an ủi, lúc rảnh thì mỏ hỗn sấy tóc, gặp drama thì cùng nói xấu muôn nơi.",
     systemPrompt: "",
     fallbackResponses: []
   }

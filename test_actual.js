@@ -1,30 +1,38 @@
-// Script test thực tế hợp nhất 3 trong 1 - AI tự động nhận diện intent của Mỏ Hỗn AI
+// Script kiểm thử thực tế 4 sắc thái cảm xúc của Bạn Thân Quốc Dân AI
 async function runTest() {
-  console.log("=== BẮT ĐẦU KIỂM THỬ THỰC TẾ HỢP NHẤT 3 TRONG 1 ===");
+  console.log("=== BẮT ĐẦU KIỂM THỬ THỰC TẾ BẠN THÂN QUỐC DÂN AI ===");
   
   const cases = [
     {
-      name: "Tự động nhận diện Roast Khịa (Kể lể drama)",
+      name: "1. Sắc thái Trò chuyện (Casual Chat)",
       payload: {
-        personaId: "savage",
+        personaId: "bestie",
         type: "roast",
-        text: "Crush bảo bận cày KPI nên rep chậm 8 tiếng"
+        text: "hôm nay tao mới thi xong nè mày ơi, vừa mệt vừa vui"
       }
     },
     {
-      name: "Tự động nhận diện Dịch Thảo Mai (Yêu cầu thảo mai)",
+      name: "2. Sắc thái An ủi (Comfort & Console)",
       payload: {
-        personaId: "savage",
+        personaId: "bestie",
         type: "roast",
-        text: "dịch thảo mai hộ tao câu này: Làm ăn như hạch, trả tiền đây nhanh"
+        text: "tao mới bị rớt phỏng vấn chiều nay xong, buồn quá muốn khóc luôn bạn thân ơi"
       }
     },
     {
-      name: "Tự động nhận diện Soạn Rep Hộ (Dán tin nhắn đối phương cần rep)",
+      name: "3. Sắc thái Mỏ hỗn (Sassy Tough Love)",
       payload: {
-        personaId: "savage",
+        personaId: "bestie",
         type: "roast",
-        text: "Nó nhắn: 'Tối nay anh bận đi bar với bạn thân khác giới rồi', rep sao cho ngầu?"
+        text: "người yêu cũ cắm sừng tao vừa nhắn tin xin hẹn gặp mặt cafe nói chuyện lại, tao có nên đi không?"
+      }
+    },
+    {
+      name: "4. Sắc thái Nói xấu (Gossip & Trash-talk)",
+      payload: {
+        personaId: "bestie",
+        type: "roast",
+        text: "con mụ đồng nghiệp cùng phòng lại đi mách lẻo nói xấu sau lưng tao với sếp, hãm không chịu nổi"
       }
     }
   ];
@@ -52,7 +60,7 @@ async function runTest() {
     }
   }
   
-  console.log("\n=== HOÀN THÀNH KIỂM THỬ HỢP NHẤT ===");
+  console.log("\n=== HOÀN THÀNH KIỂM THỬ BẠN THÂN QUỐC DÂN ===");
 }
 
 // Chờ server khởi động 2 giây rồi chạy test

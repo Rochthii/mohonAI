@@ -27,19 +27,15 @@ interface LocalChatMessage {
 }
 
 const LOADING_MESSAGES: Record<string, string[]> = {
-  savage: ["Đang mài dao...", "Đang sạc mỏ...", "Đang soạn văn chửi...", "Đang khởi động công lực xéo sắc..."],
-  tarot: ["Đang xin tín hiệu vũ trụ...", "Đang trộn bài Tarot...", "Đang kết nối với tổ tiên...", "Đang đo đạc năng lượng sao Thủy..."],
-  boss: ["Đang review synergy...", "Đang tính toán KPI...", "Đang soạn mail hi em...", "Đang căn chỉnh attitude ASAP..."],
-  ex: ["Đang suy nghĩ lý do đổ lỗi...", "Đang tìm kịch bản gaslight...", "Đang chuẩn bị đóng vai nạn nhân...", "Đang soạn đạo lý nửa mùa..."],
-  gf: ["Đang chu mỏ flirty...", "Đang chuẩn bị teasing...", "Đang dọn phòng chờ anh...", "Đang sạc năng lượng bạn gái ngọt ngào..."]
+  bestie: ["Đang hóng drama...", "Đang mài mỏ...", "Đang soạn văn tế...", "Đang pha trà ngồi hóng...", "Đang chuẩn bị sấy tóc..."]
 };
 
 function App() {
   // --- STATE ---
-  const [activePersona, setActivePersona] = useState<ChatPersona>(PERSONAS.savage);
+  const [activePersona] = useState<ChatPersona>(PERSONAS.bestie);
   const [chatHistory, setChatHistory] = useState<LocalChatMessage[]>(() => {
     try {
-      const initialPersonaId = 'savage';
+      const initialPersonaId = 'bestie';
       const historyRaw = localStorage.getItem(`tb_history_${initialPersonaId}`);
       if (historyRaw) {
         return JSON.parse(historyRaw);
@@ -49,7 +45,7 @@ function App() {
           personaId: initialPersonaId,
           sender: 'ai',
           messageType: 'text',
-          text: "💅 Ơ kìa, đứa nào làm mày uất ức hả bạn thân simp trúa của tao? Mau mau dán cái tin nhắn hãm loét hoặc câu chuyện đó vào đây đi, để tao sạc mỏ sấy khô sự vô tri của tụi nó giùm mày cái coi!",
+          text: "👯‍♀️ Ơ kìa bạn thân! Hôm nay lại có chuyện gì uất ức kể tao nghe đi. Cần tao an ủi dỗ dành, mỏ hỗn sấy tóc cho tỉnh ngộ, hay có tin nhắn hãm loét nào cần bóc phốt nói xấu chung không? Dán vào đây sấy chung cho nóng nào!",
           createdAt: new Date().toISOString()
         };
         localStorage.setItem(`tb_history_${initialPersonaId}`, JSON.stringify([welcomeMsg]));
@@ -163,21 +159,8 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Helper welcome message generator
-  const getWelcomeMessage = (personaId: string): string => {
-    switch (personaId) {
-      case 'savage':
-        return "💅 Ơ kìa, đứa nào làm mày uất ức hả bạn thân simp trúa của tao? Mau mau dán cái tin nhắn hãm loét hoặc câu chuyện đó vào đây đi, để tao sạc mỏ sấy khô sự vô tri của tụi nó giùm mày cái coi!";
-      case 'tarot':
-        return "🔮 Kính thưa các quý vị độc giả, chào mừng đến với tụ bài số 3 cờ đỏ ngập tràn. Vũ trụ đang mách bảo rằng bạn đang gặp một kiếp nạn cực lớn. Đưa câu chuyện hoặc tin nhắn của đối phương vào đây để tổ tiên phán xét năng lượng độc hại này nhé.";
-      case 'boss':
-        return "💼 Hi em! Chị rất tôn trọng sự nỗ lực làm việc của em. Tuy nhiên, nếu em đang uất ức vì bị đồng nghiệp gạt giò hoặc sếp giao task ngoài giờ, hãy dán ngay văn bản đó vào đây để chị review synergy và align lại attitude ASAP nhé em. Thân ái!";
-      case 'ex':
-        return "💔 Anh/Em biết anh/em nói dị là lỗi hoàn toàn ở anh/em quá nhạy cảm rồi... Nhưng mà câu chuyện tình cảm lạnh này của em rốt cuộc là sao? Hãy dán nó vào đây để chúng ta cùng gaslight, đổ lỗi ngược và chúc nhau hạnh phúc nhé...";
-      case 'gf':
-        return "💕 Ơ kìa anh yêu/em yêu ơi! Lâu ngày không gặp mà sao hôm nay mặt mày overthinking ủ rũ thế kia? Có phải lại bị đứa nào làm tổn thương trái tim bé bỏng nữa rồi đúng không? Đưa tin nhắn hãm đó đây để em dỗ dành, trêu đùa vài câu cho tỉnh ngộ nha! Nhớ là em chỉ là AI chat thôi, rảnh rang vẫn phải ra đường chạm cỏ và hẹn hò người thật đó nhé!";
-      default:
-        return "💅 Ơ kìa bạn yêu, dán tin nhắn vào đây để tao sấy nhẹ sự vô tri của tụi nó giùm mày cái coi!";
-    }
+  const getWelcomeMessage = (_personaId: string): string => {
+    return "👯‍♀️ Ơ kìa bạn thân! Hôm nay lại có chuyện gì uất ức kể tao nghe đi. Cần tao an ủi dỗ dành, mỏ hỗn sấy tóc cho tỉnh ngộ, hay có tin nhắn hãm loét nào cần bóc phốt nói xấu chung không? Dán vào đây sấy chung cho nóng nào!";
   };
 
   // Load chat history from Supabase DB (with LocalStorage fallback)
@@ -286,10 +269,7 @@ function App() {
 
   // Handlers reordered to the top to comply with linear declaration rule
 
-  const handleSelectPersona = (pId: string) => {
-    const p = PERSONAS[pId] || PERSONAS.savage;
-    setActivePersona(p);
-  };
+
 
   const handleNewChat = async () => {
     const isConfirmed = window.confirm(`Ủa bạn thân ơi, có chắc chắn muốn xóa sạch sành sanh lịch sử chat cũ với ${activePersona.name} để tạo cuộc trò chuyện mới không? Không khôi phục lại được đâu nha!`);
@@ -479,18 +459,11 @@ function App() {
 
   // Color mappings for Persona Themes
   const getThemeColor = () => {
-    switch (activePersona.id) {
-      case 'savage': return '#d946ef';
-      case 'tarot': return '#06b6d4';
-      case 'boss': return '#3b82f6';
-      case 'ex': return '#ef4444';
-      case 'gf': return '#fb7185';
-      default: return '#d946ef';
-    }
+    return '#a855f7';
   };
 
   return (
-    <div className={`theme-${activePersona.id}`} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="theme-bestie" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       
       {/* HEADER BAR */}
       <header className="glass-panel" style={headerStyle}>
@@ -502,7 +475,7 @@ function App() {
             <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Mỏ Hỗn AI
             </h1>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Đọc vị Tình cảm & Bóc trần Drama</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Bạn Thân Trò Chuyện & Bóc Drama</span>
           </div>
         </div>
 
@@ -566,37 +539,6 @@ function App() {
           </button>
         </div>
       </header>
-
-      {/* PERSONA SELECTOR */}
-      <section style={selectorSectionStyle}>
-        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', paddingLeft: '4px' }}>
-          Đứa bạn thân đồng hành:
-        </div>
-        <div className="no-scrollbar" style={selectorGridStyle}>
-          {Object.values(PERSONAS).map((p) => {
-            const isActive = activePersona.id === p.id;
-            return (
-              <div 
-                key={p.id}
-                onClick={() => handleSelectPersona(p.id)}
-                className={`persona-chip ${isActive ? 'active' : ''}`}
-              >
-                <div className={`monogram-avatar ${isActive ? '' : 'inactive'}`}>
-                  {p.avatar}
-                </div>
-                <div style={{ 
-                  fontSize: '0.8rem', 
-                  fontWeight: 700, 
-                  color: isActive ? 'var(--text-highlight)' : 'var(--text-muted)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {p.name}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* CHAT PANEL */}
       <main className="glass-panel" style={chatPanelStyle}>
@@ -841,20 +783,7 @@ const headerStyle: React.CSSProperties = {
   marginTop: '8px',
 };
 
-const selectorSectionStyle: React.CSSProperties = {
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  marginBottom: '16px',
-};
 
-const selectorGridStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: '10px',
-  width: '100%',
-  overflowX: 'auto',
-  padding: '8px 4px',
-};
 
 const chatPanelStyle: React.CSSProperties = {
   width: '100%',

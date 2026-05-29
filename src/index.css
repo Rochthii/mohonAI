@@ -30,6 +30,14 @@
 }
 
 /* 4 PERSONAS THEME OVERRIDES */
+.theme-bestie {
+  --accent-color: #a855f7;
+  --accent-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --accent-glow: 0 0 25px rgba(168, 85, 247, 0.4);
+  --border-neon: rgba(168, 85, 247, 0.2);
+  --border-neon-hover: rgba(168, 85, 247, 0.5);
+}
+
 .theme-savage {
   --accent-color: #d946ef;
   --accent-gradient: linear-gradient(135deg, #d946ef 0%, #8b5cf6 100%);
