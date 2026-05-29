@@ -257,13 +257,26 @@ function detectInputContext(text) {
 }
 
 // Safe Moderation Layer Compiler with Prompt fragments caching (Optimized & Minimalist)
-function compileSystemPrompt(personaId, userText = "") {
-  const cacheKey = `${personaId}_${userText.trim().slice(0, 100)}`;
+function compileSystemPrompt(personaId, userText = "", type = "roast") {
+  const cacheKey = `${personaId}_${type}_${userText.trim().slice(0, 100)}`;
   if (promptCache.has(cacheKey)) {
     return promptCache.get(cacheKey);
   }
 
-  const basePrompt = PERSONAS_SYSTEM_PROMPTS[personaId] || PERSONAS_SYSTEM_PROMPTS.savage;
+  let basePrompt = "";
+  if (type === "thaomai") {
+    const pName = personaId === 'savage' ? 'Savage Bestie mỏ hỗn' : personaId === 'tarot' ? 'Thầy Bói Tarot' : personaId === 'boss' ? 'Sếp Thảo Mai' : personaId === 'ex' ? 'Người Yêu Cũ' : 'Bạn Gái Ảo';
+    basePrompt = `Bạn là Chuyên Gia Dịch Thảo Mai mang vibe của nhân vật ${pName}.
+Nhiệm vụ: Tuyệt đối KHÔNG roast hay chửi người dùng. Hãy dịch đoạn tin nhắn cục súc, thẳng thừng hoặc thô ráp đầu vào của họ thành một tin nhắn thảo mai, lịch sự cực đoan, xã giao kịch trần nhưng vẫn truyền tải đúng nội dung cốt lõi để họ copy gửi đi.
+Độ dài: Cực kỳ ngắn gọn (dưới 50 từ).`;
+  } else if (type === "repho") {
+    const pName = personaId === 'savage' ? 'Savage Bestie mỏ hỗn xéo sắc' : personaId === 'tarot' ? 'Thầy Bói Tarot tâm linh trào phúng' : personaId === 'boss' ? 'Sếp Hãm passive-aggressive' : personaId === 'ex' ? 'Người Yêu Cũ thao túng' : 'Bạn Gái Ảo teasing flirty';
+    basePrompt = `Bạn là Chiến Thần Soạn Tin Phản Hồi (Reply Generator) dưới danh nghĩa nhân vật ${pName}.
+Nhiệm vụ: Tuyệt đối KHÔNG roast hay chửi người dùng. Hãy giúp người dùng soạn một tin nhắn phản hồi (reply) cực kỳ sắc sảo, tự nhiên, mang đậm phong cách của nhân vật để người dùng copy gửi lại cho đối phương (người gửi tin nhắn trong bối cảnh).
+Độ dài: Ngắn gọn (dưới 45 từ).`;
+  } else {
+    basePrompt = PERSONAS_SYSTEM_PROMPTS[personaId] || PERSONAS_SYSTEM_PROMPTS.savage;
+  }
 
   let compiledRules = `
 1. **Cấm chửi thề tục tĩu thô bỉ**: Bạn châm biếm xéo sắc bằng trí tuệ, dí dỏm sâu cay đâm trúng tim đen. Tuyệt đối KHÔNG dùng từ ngữ vô văn hóa, thô tục thô bỉ.
@@ -492,7 +505,7 @@ app.post('/api/roast', async (req, res) => {
     customPrompt = `Hãy phản hồi và roast người dùng một cách cực kỳ tự nhiên, đời thường, sắc sảo dựa trên bối cảnh: "${cleanText}"`;
   }
 
-  const systemPromptCompiled = compileSystemPrompt(personaId, cleanText);
+  const systemPromptCompiled = compileSystemPrompt(personaId, cleanText, type);
   
   let finalResponse = null;
 
